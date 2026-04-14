@@ -8,6 +8,10 @@ We also append an equal-weighted market portfolio (corresponding to a
 constant column in Z), yielding P+1 managed portfolios.
 """
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import numpy as np
 import pandas as pd
 from typing import List, Tuple

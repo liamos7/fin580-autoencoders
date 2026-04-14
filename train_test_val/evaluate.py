@@ -15,9 +15,14 @@ import numpy as np
 import pandas as pd
 from typing import Dict, List, Optional, Tuple
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 import config
-from models import ConditionalAutoencoder
-from train import AssetPricingDataset, ensemble_predict_month
+from train_test_val.models import ConditionalAutoencoder
+from train_test_val.train import AssetPricingDataset, ensemble_predict_month
 
 
 # ─────────────────────────────────────────────────────────────────

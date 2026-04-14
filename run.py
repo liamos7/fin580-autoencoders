@@ -36,6 +36,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Autoencoder Asset Pricing")
     parser.add_argument("--data", type=str, default=config.RAW_DIR + "panel.csv",
                         help="Path to raw stock-month panel CSV")
+    parser.add_argument("--processed", type=str, default=None,
+                        help="Path to already-processed parquet (skips build_panel)")
     parser.add_argument("--architecture", type=str, default="CA2",
                         choices=["IPCA", "CA0", "CA1", "CA2", "CA3"],
                         help="Model architecture")
@@ -65,11 +67,17 @@ def main():
     print("  STEP 1: Data Loading and Preprocessing")
     print("=" * 60)
     
-    df, char_cols = build_panel(args.data)
+    if args.processed:
+        print(f"  Loading processed panel from {args.processed}...")
+        df = pd.read_parquet(args.processed)
+        char_cols = [c for c in df.columns if c not in ("permno", "date", "ret")]
+        print(f"  {len(df):,} stock-months, {len(char_cols)} characteristics")
+    else:
+        df, char_cols = build_panel(args.data)
     P = len(char_cols)
     
     # Split into train / val / test
-    train_df, val_df, test_df = split_panel(df, train_end=197412, val_end=198612)
+    train_df, val_df, test_df = split_panel(df, train_end=200512, val_end=201012)
     
     # Convert to tensor format
     print("\n  Converting to tensors...")

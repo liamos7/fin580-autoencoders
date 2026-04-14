@@ -19,6 +19,7 @@ early stopping, batch normalization, ensemble averaging
 Data:
 Chen-Zimmerman (https://www.openassetpricing.com)
 signed predictors from https://drive.google.com/drive/folders/14tSIjON58-k0Lg4EPQbYEcEPomqdpmxk 
+returns from Wharton
 
 
 

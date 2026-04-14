@@ -13,13 +13,16 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 # ─────────────────────────────────────────────
 # Data
 # ─────────────────────────────────────────────
-DATA_DIR = "data/"
-RAW_DIR = DATA_DIR + "raw/"
-PROCESSED_DIR = DATA_DIR + "processed/"
-OUTPUT_DIR = "outputs/"
-MODEL_DIR = OUTPUT_DIR + "models/"
-FIGURE_DIR = OUTPUT_DIR + "figures/"
-TABLE_DIR = OUTPUT_DIR + "tables/"
+from pathlib import Path as _Path
+_ROOT = _Path(__file__).resolve().parent
+
+DATA_DIR      = str(_ROOT / "data")        + "/"
+RAW_DIR       = str(_ROOT / "data/raw")    + "/"
+PROCESSED_DIR = str(_ROOT / "data/processed") + "/"
+OUTPUT_DIR    = str(_ROOT / "outputs")     + "/"
+MODEL_DIR     = str(_ROOT / "outputs/models")   + "/"
+FIGURE_DIR    = str(_ROOT / "outputs/figures")  + "/"
+TABLE_DIR     = str(_ROOT / "outputs/tables")   + "/"
 
 # Characteristic lag conventions (months)
 LAG_MONTHLY = 1

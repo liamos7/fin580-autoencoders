@@ -17,8 +17,13 @@ import time
 from typing import Dict, List, Optional, Tuple
 from pathlib import Path
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # project root
+sys.path.insert(0, str(Path(__file__).resolve().parent))          # train_test_val/
+
 import config
-from models import build_model, ConditionalAutoencoder
+from train_test_val.models import build_model, ConditionalAutoencoder
 
 
 class AssetPricingDataset:
@@ -112,48 +117,15 @@ def compute_loss(
     l1_lambda: float = 0.0,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
-    Compute reconstruction loss + L1 penalty.
-    
-    Loss = (1/B) Σ (r_i - β_i' f)^2 + λ Σ|θ|
-    
-    Note: In each mini-batch, stocks may come from different months.
-    Since the factor network takes x_t as input, we need to handle
-    the fact that different stocks in the batch have different x_t.
-    We compute f for each unique x_t in the batch.
+    Compute reconstruction loss + L1 penalty for a single month.
+
+    Expects chars/returns for one month and the corresponding mp vector.
+    Call model in train mode; caller ensures len(returns) >= 2 for BatchNorm.
     """
-    r_hat, beta, f = model(chars, mp[0])  # simplified: use first month's mp
-    
-    # More correct approach: group by month within batch
-    # For efficiency, we approximate by computing f from the mean mp in the batch
-    # or we restructure to process month-by-month.
-    # The paper's SGD pools observations, so using the associated x_t per obs is correct.
-    
-    # Since mp is (B, P+1) and may vary across batch elements,
-    # we need to handle this carefully:
-    unique_mp, inverse = torch.unique(mp, dim=0, return_inverse=True)
-    
-    # Compute factors for each unique managed portfolio vector
-    all_r_hat = torch.zeros(len(returns), device=returns.device)
-    
-    for j in range(len(unique_mp)):
-        mp_mask = (inverse == j)
-        if mp_mask.sum() == 0:
-            continue
-        batch_chars = chars[mp_mask]
-        batch_mp = unique_mp[j]
-        
-        r_hat_j, _, _ = model(batch_chars, batch_mp)
-        all_r_hat[mp_mask] = r_hat_j
-    
-    # Reconstruction loss
-    recon_loss = ((returns - all_r_hat) ** 2).mean()
-    
-    # L1 penalty
+    r_hat, _, _ = model(chars, mp)
+    recon_loss = ((returns - r_hat) ** 2).mean()
     l1_penalty = model.get_l1_penalty() if l1_lambda > 0 else torch.tensor(0.0)
-    
-    total_loss = recon_loss + l1_lambda * l1_penalty
-    
-    return total_loss, recon_loss
+    return recon_loss + l1_lambda * l1_penalty, recon_loss
 
 
 def compute_loss_by_month(
@@ -198,7 +170,10 @@ def train_single_model(
 ) -> Tuple[nn.Module, Dict]:
     """
     Train a single model with early stopping (Algorithm 1).
-    
+
+    Processes one full month at a time so each forward pass has a clean,
+    consistent x_t and BatchNorm1d always sees >1 sample.
+
     Returns:
         best_model: Model with best validation loss
         history: Dict with training metrics
@@ -209,27 +184,42 @@ def train_single_model(
         betas=(config.ADAM_BETA1, config.ADAM_BETA2),
         eps=config.ADAM_EPS,
     )
-    
+
     best_val_loss = float("inf")
     best_model_state = None
     epochs_without_improvement = 0
     history = {"train_loss": [], "val_loss": []}
-    
+
+    # Shuffle month order each epoch for SGD-like variance
+    month_indices = list(range(train_data.T))
+
     for epoch in range(max_epochs):
         # ── Training ──
         model.train()
         epoch_loss = 0.0
-        n_batches = 0
-        
-        for chars, returns, mp in train_data.get_batches(batch_size):
+        n_months = 0
+
+        np.random.shuffle(month_indices)
+
+        for t in month_indices:
+            chars_t, returns_t, mp_t = train_data.get_month_data(t)
+            if len(returns_t) < 2:   # need ≥2 for BatchNorm
+                continue
+
             optimizer.zero_grad()
-            loss, _ = compute_loss(model, chars, returns, mp, l1_lambda)
+
+            r_hat, _, _ = model(chars_t, mp_t)
+            recon_loss = ((returns_t - r_hat) ** 2).mean()
+            l1_penalty = model.get_l1_penalty() if l1_lambda > 0 else torch.tensor(0.0)
+            loss = recon_loss + l1_lambda * l1_penalty
+
             loss.backward()
             optimizer.step()
-            epoch_loss += loss.item()
-            n_batches += 1
-        
-        train_loss = epoch_loss / max(n_batches, 1)
+
+            epoch_loss += recon_loss.item()
+            n_months += 1
+
+        train_loss = epoch_loss / max(n_months, 1)
         
         # ── Validation ──
         val_loss, val_recon = compute_loss_by_month(model, val_data, l1_lambda)

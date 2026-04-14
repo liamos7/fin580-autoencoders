@@ -9,9 +9,14 @@ Handles:
 - Train/validation/test splitting with rolling windows
 """
 
+import sys
+from pathlib import Path
+
+# Allow imports from the project root (one level up from src/)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
 from typing import Tuple, List, Optional
 
 import config
@@ -33,10 +38,81 @@ COL_PERMNO = "permno"       # stock identifier
 COL_DATE = "date"           # YYYYMM integer
 COL_RETURN = "ret"          # monthly excess return (already in excess of rf)
 
-# The 94 characteristics from Gu, Kelly, Xiu (2020).
-# Below is the full list. Your dataset may use slightly different names —
-# map them here. Characteristics you can't find can be dropped; the model
-# still works with fewer, just note it in your report.
+# Mapping from Chen-Zimmermann column names (lowercase) -> GKX names used here.
+# Only covers the GKX chars that exist in CZ under a different name.
+# Chars absent from CZ entirely are simply dropped (noted at runtime).
+CZ_RENAME = {
+    "yyyymm":           "date",
+    # Price trend
+    "mrreversal":       "mom1m",
+    "mom6m":            "mom6m",
+    "mom12m":           "mom12m",
+    "indmom":           "indmom",
+    "maxret":           "maxret",
+    # Liquidity
+    "std_turn":         "std_turn",
+    "dolvol":           "dolvol",
+    "illiquidity":      "ill",
+    "zerotrade1m":      "zerotrade",
+    "bidaskspread":     "baspread",
+    "volsd":            "std_dolvol",   # std dev of dollar volume
+    # Risk
+    "realizedvol":      "retvol",
+    "idiovol3f":        "idiovol",
+    "beta":             "beta",
+    # Value
+    "bm":               "bm",
+    "ep":               "ep",
+    "cfp":              "cfp",
+    "leverage":         "lev",
+    "sp":               "sp",
+    "cashprod":         "cashpr",       # cash productivity
+    "divyieldst":       "dy",           # dividend yield
+    # Profitability
+    "roaq":             "roaq",
+    "operprof":         "operprof",
+    "ps":               "ps",
+    "roe":              "roeq",
+    "gp":               "gma",          # gross profitability / gross margin
+    # Investment
+    "investment":       "invest",
+    "grcapx":           "grcapx",
+    "chinv":            "chinv",
+    "chinvia":          "pchcapx_ia",   # capex change, industry-adjusted
+    "hire":             "hire",
+    "assetgrowth":      "agr",
+    # Intangibles
+    "orgcap":           "orgcap",
+    "rd":               "rd",
+    "rds":              "rd_sale",      # R&D to sales
+    "pctacc":           "pctacc",
+    "accruals":         "acc",          # accruals
+    "abnormalaccruals": "absacc",       # abnormal/absolute accruals
+    # Trading friction / earnings
+    "numearnincrease":  "nincr",        # number of earnings increases
+    "varcf":            "stdcf",        # variance/std dev of cash flow
+    "convdebt":         "convind",      # convertible debt indicator
+    "announcementreturn": "ear",        # earnings announcement return
+    "ms":               "ms",
+    "pricedelayslope":  "pricedelay",
+    "firmage":          "age",
+    "revenuessurprise": "rsup",         # revenue surprise (note: CZ col is RevenueSurprise)
+    "sinalgo":          "sin",          # sin stock indicator
+    # Other
+    "cash":             "cash",
+    "chtax":            "chtx",
+    "herf":             "herf",
+    "realestate":       "realestate",
+    "grltnoa":          "grltnoa",
+    "tang":             "tang",
+    "chassetturnoever": "chatoia",      # change in asset turnover
+    "divinit":          "divi",         # dividend initiation
+    "divomit":          "divo",         # dividend omission
+    "tax":              "tb",           # tax-to-book
+    "cf":               "cashdebt",     # cash flow to debt
+}
+
+# The 94 characteristics from Gu, Kelly, Xiu (2020), using GKX names.
 GKX_CHARACTERISTICS = [
     # Price trend
     "mom1m", "mom6m", "mom12m", "mom36m", "chmom", "indmom", "maxret",
@@ -50,7 +126,7 @@ GKX_CHARACTERISTICS = [
     "roic", "roeq", "salerec", "salecash", "saleinv", "pchsaleinv",
     "cashdebt", "rd_sale", "operprof", "ps",
     # Investment
-    "agr", "invest", "egr", "grcapx", "grGMA", "chcsho", "chinv",
+    "agr", "invest", "egr", "grcapx", "grgma", "chcsho", "chinv",
     "pchcapx_ia", "hire",
     # Intangibles
     "orgcap", "rd", "rd_mve", "acc", "absacc", "pctacc",
@@ -86,34 +162,78 @@ QUARTERLY_CHARS = [
 
 def load_raw_panel(filepath: str) -> pd.DataFrame:
     """
-    Load the raw stock-month panel.
-    
-    Expected format: CSV with columns [permno, date, ret, char1, char2, ...].
-    Date should be integer YYYYMM or convertible to one.
-    Returns should already be excess returns. If not, subtract the risk-free
-    rate here (merge with FF rf from Ken French's site).
+    Load the raw stock-month panel, reading only the columns we need.
+
+    Supports the Chen-Zimmermann "signed_predictors_dl_wide" format where:
+      - date column is named 'yyyymm' (renamed to 'date')
+      - returns ('ret') are absent — rows will have ret=NaN; merge returns
+        separately before calling build_panel, or build_panel will drop them.
+      - characteristic names differ from GKX — CZ_RENAME handles the mapping.
+
+    For any other CSV/parquet, columns are lowercased and matched as-is.
     """
     print(f"Loading raw data from {filepath}...")
-    
-    # Detect format
+
+    # Build the set of CZ source columns we want to load
+    # (CZ name -> GKX name for all chars + permno/date/ret)
+    cz_to_gkx = {k: v for k, v in CZ_RENAME.items()}
+    # Inverse: gkx -> cz (for chars that share the same name)
+    gkx_names = set(GKX_CHARACTERISTICS)
+    # All CZ source names to keep
+    needed_cz = set(cz_to_gkx.keys())
+    # Also keep any column whose lowercase name is already a GKX name
+    # (will be resolved after loading)
+
     if filepath.endswith(".parquet"):
         df = pd.read_parquet(filepath)
+        df.columns = df.columns.str.lower().str.strip()
     elif filepath.endswith(".csv"):
-        df = pd.read_csv(filepath, low_memory=False)
+        # Read only the header to determine which columns exist (preserve original case)
+        header = pd.read_csv(filepath, nrows=0)
+        orig_cols = list(header.columns)                          # original case
+        lower_cols = [c.lower().strip() for c in orig_cols]      # lowercase version
+        lower_to_orig = dict(zip(lower_cols, orig_cols))          # lowercase -> original
+
+        keep_lower = set()
+        keep_lower.add("permno")
+        for c in ("date", "yyyymm", "ret"):
+            if c in lower_cols:
+                keep_lower.add(c)
+        for c in needed_cz:
+            if c in lower_cols:
+                keep_lower.add(c)
+        for c in lower_cols:
+            if c in gkx_names:
+                keep_lower.add(c)
+
+        # usecols must use the original case names as they appear in the file
+        usecols = [lower_to_orig[c] for c in lower_cols if c in keep_lower]
+        print(f"  Reading {len(usecols)} of {len(orig_cols)} columns...")
+        df = pd.read_csv(filepath, usecols=usecols, low_memory=False)
+        df.columns = df.columns.str.lower().str.strip()
     else:
         raise ValueError(f"Unsupported file format: {filepath}")
-    
-    # Standardize column names to lowercase
-    df.columns = df.columns.str.lower().str.strip()
-    
+
+    # Apply CZ -> GKX renames
+    df = df.rename(columns=cz_to_gkx)
+
+    # If no 'ret' column, add a NaN placeholder so the pipeline can run;
+    # caller must merge in returns before splitting/training.
+    if COL_RETURN not in df.columns:
+        print("  WARNING: no 'ret' column found — ret set to NaN. "
+              "Merge CRSP returns before training.")
+        df[COL_RETURN] = np.nan
+
     # Ensure date is integer YYYYMM
-    if df[COL_DATE].dtype == "object" or df[COL_DATE].dtype == "<M8[ns]":
+    if df[COL_DATE].dtype == object or str(df[COL_DATE].dtype) == "datetime64[ns]":
         df[COL_DATE] = pd.to_datetime(df[COL_DATE]).dt.strftime("%Y%m").astype(int)
-    
+    else:
+        df[COL_DATE] = df[COL_DATE].astype(int)
+
     print(f"  Raw panel: {len(df):,} stock-months, "
           f"{df[COL_PERMNO].nunique():,} unique stocks, "
           f"{df[COL_DATE].nunique()} months")
-    
+
     return df
 
 
@@ -139,44 +259,58 @@ def impute_missing(df: pd.DataFrame, char_cols: List[str]) -> pd.DataFrame:
     """
     Replace missing characteristics with cross-sectional median for that month.
     This matches the paper's approach (Section 3.1).
+
+    Vectorized: compute all column medians per month in one groupby, then
+    fill NaNs from the resulting median matrix.
     """
     print("  Imputing missing values with cross-sectional medians...")
-    
-    for col in char_cols:
-        n_missing = df[col].isna().sum()
-        if n_missing > 0:
-            df[col] = df.groupby(COL_DATE)[col].transform(
-                lambda x: x.fillna(x.median())
-            )
-    
+
+    char_df = df[char_cols]
+    medians = char_df.groupby(df[COL_DATE]).transform("median")
+    df = df.copy()
+    df[char_cols] = char_df.where(char_df.notna(), medians)
+
     # Drop any remaining rows with NaN returns
     before = len(df)
     df = df.dropna(subset=[COL_RETURN])
     print(f"  Dropped {before - len(df)} rows with missing returns")
-    
+
     return df
 
 
 def rank_normalize(df: pd.DataFrame, char_cols: List[str]) -> pd.DataFrame:
     """
     Rank-normalize characteristics to (-1, 1) cross-sectionally each month.
-    
+
     Following the paper: rank / (n+1) * 2 - 1, where n is the number of
     non-missing observations for that characteristic in that month.
-    This maps the smallest value to near -1 and the largest to near +1.
+
+    Vectorized: all columns are ranked in one groupby pass using scipy,
+    which is ~50x faster than looping column-by-column with transform.
     """
+    from scipy.stats import rankdata
+
     print("  Rank-normalizing characteristics to (-1, 1)...")
-    
-    def _rank_norm(x: pd.Series) -> pd.Series:
-        ranked = x.rank(method="average")
-        n = x.notna().sum()
+
+    char_arr = df[char_cols].values.astype(np.float64)  # (N, P)
+    dates = df[COL_DATE].values
+    result = np.empty_like(char_arr)
+
+    for date in np.unique(dates):
+        mask = dates == date
+        block = char_arr[mask]          # (n_stocks, P)
+        n = block.shape[0]
         if n <= 1:
-            return x * 0.0  # degenerate case
-        return 2.0 * ranked / (n + 1) - 1.0
-    
-    for col in char_cols:
-        df[col] = df.groupby(COL_DATE)[col].transform(_rank_norm)
-    
+            result[mask] = 0.0
+            continue
+        # rankdata over axis=0 handles NaN implicitly via nan_policy
+        ranked = np.apply_along_axis(
+            lambda col: rankdata(col, method="average", nan_policy="propagate"), 0, block
+        )
+        result[mask] = 2.0 * ranked / (n + 1) - 1.0
+
+    df = df.copy()
+    df[char_cols] = result
     return df
 
 
@@ -217,28 +351,68 @@ def align_characteristic_lags(
     return df
 
 
-def build_panel(filepath: str) -> Tuple[pd.DataFrame, List[str]]:
+def build_panel(
+    filepath: Optional[str] = None,
+    save_processed: bool = True,
+) -> Tuple[pd.DataFrame, List[str]]:
     """
     Full preprocessing pipeline: load -> select chars -> lag -> impute -> normalize.
-    
+
+    If filepath is None, searches config.RAW_DIR for a .parquet or .csv file.
+    If save_processed is True, saves the cleaned panel to config.PROCESSED_DIR.
+
     Returns:
         df: Cleaned panel with columns [permno, date, ret, char1, ..., charP]
             where chars at each row are lagged (known at t-1) and rank-normalized.
         char_cols: List of characteristic column names.
     """
+    if filepath is None:
+        raw_dir = Path(config.RAW_DIR)
+        candidates = list(raw_dir.glob("*.parquet")) + list(raw_dir.glob("*.csv"))
+        if not candidates:
+            raise FileNotFoundError(f"No .parquet or .csv file found in {raw_dir}")
+        filepath = str(candidates[0])
+        if len(candidates) > 1:
+            print(f"  WARNING: multiple raw files found, using {filepath}")
+
     df = load_raw_panel(filepath)
+
+    # Merge in returns and risk-free rate if not already present
+    if df[COL_RETURN].isna().all():
+        returns_path = Path(config.RAW_DIR) / "returns.csv"
+        if returns_path.exists():
+            print(f"  Merging returns from {returns_path}...")
+            returns = pd.read_csv(returns_path, usecols=['permno', 'yyyymm', 'ret', 'ret_excess'])
+            returns = returns.rename(columns={'yyyymm': COL_DATE})
+            # Drop the NaN placeholder before merging to avoid ret_x/ret_y collision
+            df = df.drop(columns=[COL_RETURN])
+            df = df.merge(returns[['permno', COL_DATE, 'ret', 'ret_excess']],
+                          on=[COL_PERMNO, COL_DATE], how='inner')
+            df = df.rename(columns={'ret': COL_RETURN})
+        else:
+            raise FileNotFoundError(
+                f"No returns found. Run src/api_caller.py to generate {returns_path}"
+            )
+
     df, char_cols = select_characteristics(df)
     df = align_characteristic_lags(df, char_cols)
     df = impute_missing(df, char_cols)
     df = rank_normalize(df, char_cols)
-    
+
     # Final cleanup: drop any remaining NaN rows
     df = df.dropna()
-    
+
     print(f"\n  Final panel: {len(df):,} stock-months, "
           f"{df[COL_PERMNO].nunique():,} stocks, "
           f"{df[COL_DATE].nunique()} months")
-    
+
+    if save_processed:
+        processed_dir = Path(config.PROCESSED_DIR)
+        processed_dir.mkdir(parents=True, exist_ok=True)
+        out_path = processed_dir / "panel_processed.parquet"
+        df.to_parquet(out_path, index=False)
+        print(f"  Saved processed panel to {out_path}")
+
     return df, char_cols
 
 
@@ -357,11 +531,11 @@ def prepare_tensors(
 if __name__ == "__main__":
     """Quick test: run the pipeline on your data file."""
     import sys
-    
-    filepath = sys.argv[1] if len(sys.argv) > 1 else config.RAW_DIR + "panel.csv"
-    
-    df, char_cols = build_panel(filepath)
+
+    filepath = sys.argv[1] if len(sys.argv) > 1 else None  # None -> auto-detect from RAW_DIR
+
+    df, char_cols = build_panel(filepath, save_processed=True)
     train, val, test = split_panel(df, train_end=197412, val_end=198612)
-    
+
     returns, chars, mask, dates = prepare_tensors(train, char_cols)
     print(f"\n  Tensor shapes: returns {returns.shape}, chars {chars.shape}, mask {mask.shape}")

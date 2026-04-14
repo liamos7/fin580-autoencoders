@@ -1,5 +1,5 @@
 """
-Thesis-inspired extensions to the autoencoder asset pricing model.
+Extensions to the autoencoder asset pricing model.
 
 Plan A: Energy-based anomaly scoring on reconstruction residuals
 Plan B: Energy-based regularization of the latent factor space
@@ -14,9 +14,14 @@ import numpy as np
 import pandas as pd
 from typing import Dict, List, Optional, Tuple
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 import config
-from models import ConditionalAutoencoder, build_model
-from train import AssetPricingDataset, ensemble_predict_month
+from train_test_val.models import ConditionalAutoencoder, build_model
+from train_test_val.train import AssetPricingDataset, ensemble_predict_month
 
 
 # ═══════════════════════════════════════════════════════════════════
