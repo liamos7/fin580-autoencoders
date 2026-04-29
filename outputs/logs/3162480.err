@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/scratch/network/lo8603/final_project/run.py", line 222, in <module>
+    main()
+  File "/scratch/network/lo8603/final_project/run.py", line 72, in main
+    df = pd.read_parquet(args.processed)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/pandas/io/parquet.py", line 653, in read_parquet
+    impl = get_engine(engine)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/pandas/io/parquet.py", line 68, in get_engine
+    raise ImportError(
+ImportError: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - Missing optional dependency 'pyarrow'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.
+ - Missing optional dependency 'fastparquet'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.

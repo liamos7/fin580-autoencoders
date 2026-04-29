@@ -16,3 +16,6 @@ __pycache__/
 
 # Jupyter
 .ipynb_checkpoints/
+
+code
+.claude

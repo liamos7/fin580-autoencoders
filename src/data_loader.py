@@ -382,13 +382,12 @@ def build_panel(
         returns_path = Path(config.RAW_DIR) / "returns.csv"
         if returns_path.exists():
             print(f"  Merging returns from {returns_path}...")
-            returns = pd.read_csv(returns_path, usecols=['permno', 'yyyymm', 'ret', 'ret_excess'])
-            returns = returns.rename(columns={'yyyymm': COL_DATE})
-            # Drop the NaN placeholder before merging to avoid ret_x/ret_y collision
+            returns = pd.read_csv(returns_path, usecols=['permno', 'yyyymm', 'ret_excess'])
+            returns = returns.rename(columns={'yyyymm': COL_DATE, 'ret_excess': COL_RETURN})
+            # Drop the NaN placeholder before merging to avoid collision
             df = df.drop(columns=[COL_RETURN])
-            df = df.merge(returns[['permno', COL_DATE, 'ret', 'ret_excess']],
+            df = df.merge(returns[['permno', COL_DATE, COL_RETURN]],
                           on=[COL_PERMNO, COL_DATE], how='inner')
-            df = df.rename(columns={'ret': COL_RETURN})
         else:
             raise FileNotFoundError(
                 f"No returns found. Run src/api_caller.py to generate {returns_path}"

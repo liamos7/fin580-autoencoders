@@ -70,7 +70,7 @@ def main():
     if args.processed:
         print(f"  Loading processed panel from {args.processed}...")
         df = pd.read_parquet(args.processed)
-        char_cols = [c for c in df.columns if c not in ("permno", "date", "ret")]
+        char_cols = [c for c in df.columns if c not in ("permno", "date", "ret", "ret_excess")]
         print(f"  {len(df):,} stock-months, {len(char_cols)} characteristics")
     else:
         df, char_cols = build_panel(args.data)
@@ -138,7 +138,22 @@ def main():
         comparison = pd.DataFrame(all_results)
         comparison.to_csv(config.TABLE_DIR + "model_comparison.csv", index=False)
         print(f"\n  Comparison saved to {config.TABLE_DIR}model_comparison.csv")
-    
+
+        # Pick best model by R²_total for extensions
+        best = max(all_results, key=lambda r: r["r2_total"])
+        best_arch, best_K = best["architecture"], best["K"]
+        print(f"\n  Best model: {best_arch} K={best_K} "
+              f"(R²_total={best['r2_total']*100:.2f}%)")
+
+        if args.run_extensions:
+            print(f"\n  Retraining {best_arch} K={best_K} for extensions...")
+            models = train_ensemble(
+                best_arch, P, MP, best_K, train_data, val_data,
+                n_seeds=args.seeds, verbose=False,
+            )
+            args.architecture = best_arch
+            args.K = best_K
+
     else:
         # Train single architecture
         l1_lambda = config.L1_LAMBDA
@@ -162,57 +177,70 @@ def main():
         print("\n" + "=" * 60)
         print("  STEP 4: Out-of-Sample Evaluation")
         print("=" * 60)
-        
-        results = evaluate_model(
+
+        evaluate_model(
             models, test_data,
             model_name=f"{args.architecture}_K{args.K}",
             char_cols=char_cols,
             verbose=args.verbose,
         )
-        
-        # ── Step 5: Extensions ──
-        if args.run_extensions:
-            print("\n" + "=" * 60)
-            print("  STEP 5: Extensions (Plans A & B)")
-            print("=" * 60)
-            
-            from train_test_val.extensions import (
-                compute_anomaly_scores,
-                portfolio_sort_analysis,
-                predictive_regression,
-                run_energy_ablation,
-            )
-            
-            # Plan A: Anomaly scoring
-            print("\n  Plan A: Anomaly scoring on residuals...")
-            residuals, sq_res, pred_ret, act_ret = compute_anomaly_scores(
-                models, test_data
-            )
-            
-            sort_results = portfolio_sort_analysis(
-                test_data, residuals, act_ret
-            )
-            print("\n  Portfolio sort results:")
-            print(sort_results.to_string(index=False))
-            sort_results.to_csv(config.TABLE_DIR + "plan_a_portfolio_sorts.csv", index=False)
-            
-            reg_results = predictive_regression(
-                test_data, residuals, pred_ret, act_ret
-            )
-            print(f"\n  Predictive regression:")
-            for k, v in reg_results.items():
-                print(f"    {k}: {v:.4f}" if isinstance(v, float) else f"    {k}: {v}")
-            
-            # Plan B: Energy regularization ablation
-            print("\n  Plan B: Energy regularization ablation...")
-            ablation_results = run_energy_ablation(
-                args.architecture, P, MP, args.K,
-                train_data, val_data, test_data,
-            )
-            print("\n  Ablation results:")
-            print(ablation_results.to_string(index=False))
-            ablation_results.to_csv(config.TABLE_DIR + "plan_b_ablation.csv", index=False)
-    
+
+    # ── Step 5: Extensions (Plans A & B) ──
+    if args.run_extensions:
+        print("\n" + "=" * 60)
+        print("  STEP 5: Extensions (Plans A & B)")
+        print(f"  Model: {args.architecture} K={args.K}")
+        print("=" * 60)
+
+        from train_test_val.extensions import (
+            compute_anomaly_scores,
+            portfolio_sort_analysis,
+            predictive_regression,
+            transition_analysis,
+            run_energy_ablation,
+        )
+
+        # Plan A: Anomaly scoring
+        print("\n  Plan A: Anomaly scoring on residuals...")
+        residuals, sq_res, pred_ret, act_ret = compute_anomaly_scores(
+            models, test_data
+        )
+
+        sort_results = portfolio_sort_analysis(
+            test_data, residuals, act_ret
+        )
+        print("\n  Portfolio sort results:")
+        print(sort_results.to_string(index=False))
+        sort_results.to_csv(config.TABLE_DIR + "plan_a_portfolio_sorts.csv", index=False)
+
+        reg_results = predictive_regression(
+            test_data, residuals, pred_ret, act_ret
+        )
+        print(f"\n  Predictive regression:")
+        for k, v in reg_results.items():
+            print(f"    {k}: {v:.4f}" if isinstance(v, float) else f"    {k}: {v}")
+
+        print("\n  Transition analysis (low→high anomaly)...")
+        trans_results = transition_analysis(
+            test_data, residuals, act_ret, test_df
+        )
+        print(f"  Transitions found: {trans_results['n_transitions']}, "
+              f"Controls: {trans_results['n_controls']}")
+        print(trans_results["summary"].to_string(index=False))
+        trans_results["summary"].to_csv(
+            config.TABLE_DIR + "plan_a_transitions.csv", index=False
+        )
+
+        # Plan B: Energy regularization ablation
+        print("\n  Plan B: Energy regularization ablation...")
+        ablation_results = run_energy_ablation(
+            args.architecture, P, MP, args.K,
+            train_data, val_data, test_data,
+        )
+        print("\n  Ablation results:")
+        print(ablation_results.to_string(index=False))
+        ablation_results.to_csv(config.TABLE_DIR + "plan_b_ablation.csv", index=False)
+
     print("\n" + "=" * 60)
     print("  Done!")
     print("=" * 60)

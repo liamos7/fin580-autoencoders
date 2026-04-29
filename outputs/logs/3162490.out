@@ -1,0 +1,117 @@
+
+============================================================
+  STEP 1: Data Loading and Preprocessing
+============================================================
+  Loading processed panel from data/processed/panel_processed.parquet...
+  4,221,335 stock-months, 56 characteristics
+  Train: 2,640,591 obs (197201-200512)
+  Val:   403,373 obs (200601-201012)
+  Test:  1,177,371 obs (201101-202312)
+
+  Converting to tensors...
+
+============================================================
+  STEP 2: Managed Portfolio Construction
+============================================================
+
+  Dataset sizes: train=2,640,591, val=403,373, test=1,177,371
+
+============================================================
+  STEP 3: Training CA2 with K=5
+============================================================
+
+  Training IPCA K=1...
+    R²_total=2.73%, R²_pred=0.00%, SR=3.56
+
+  Training IPCA K=2...
+    R²_total=3.11%, R²_pred=0.00%, SR=4.51
+
+  Training IPCA K=3...
+    R²_total=3.36%, R²_pred=0.01%, SR=4.86
+
+  Training IPCA K=4...
+    R²_total=3.49%, R²_pred=-0.01%, SR=4.82
+
+  Training IPCA K=5...
+    R²_total=3.61%, R²_pred=-0.09%, SR=5.00
+
+  Training IPCA K=6...
+    R²_total=3.71%, R²_pred=0.02%, SR=5.01
+
+  Training CA0 K=1...
+    R²_total=11.51%, R²_pred=0.00%, SR=2.69
+
+  Training CA0 K=2...
+    R²_total=12.20%, R²_pred=-0.01%, SR=3.98
+
+  Training CA0 K=3...
+    R²_total=12.47%, R²_pred=0.04%, SR=4.45
+
+  Training CA0 K=4...
+    R²_total=12.95%, R²_pred=-0.02%, SR=4.91
+
+  Training CA0 K=5...
+    R²_total=12.95%, R²_pred=-0.05%, SR=4.84
+
+  Training CA0 K=6...
+    R²_total=13.03%, R²_pred=0.05%, SR=4.92
+
+  Training CA1 K=1...
+    R²_total=11.57%, R²_pred=-0.10%, SR=2.81
+
+  Training CA1 K=2...
+    R²_total=12.55%, R²_pred=-0.01%, SR=4.15
+
+  Training CA1 K=3...
+    R²_total=12.82%, R²_pred=-0.04%, SR=4.77
+
+  Training CA1 K=4...
+    R²_total=13.40%, R²_pred=0.00%, SR=5.22
+
+  Training CA1 K=5...
+    R²_total=13.33%, R²_pred=0.03%, SR=5.20
+
+  Training CA1 K=6...
+    R²_total=13.41%, R²_pred=-0.06%, SR=5.23
+
+  Training CA2 K=1...
+    R²_total=11.61%, R²_pred=-0.01%, SR=2.85
+
+  Training CA2 K=2...
+    R²_total=12.68%, R²_pred=0.01%, SR=4.18
+
+  Training CA2 K=3...
+    R²_total=13.08%, R²_pred=-0.04%, SR=4.79
+
+  Training CA2 K=4...
+    R²_total=13.35%, R²_pred=0.10%, SR=5.18
+
+  Training CA2 K=5...
+    R²_total=13.39%, R²_pred=-0.21%, SR=5.13
+
+  Training CA2 K=6...
+    R²_total=13.43%, R²_pred=0.07%, SR=5.18
+
+  Training CA3 K=1...
+    R²_total=11.62%, R²_pred=0.00%, SR=2.81
+
+  Training CA3 K=2...
+    R²_total=12.68%, R²_pred=-0.01%, SR=4.10
+
+  Training CA3 K=3...
+    R²_total=13.08%, R²_pred=0.04%, SR=4.83
+
+  Training CA3 K=4...
+    R²_total=13.02%, R²_pred=-0.08%, SR=4.77
+
+  Training CA3 K=5...
+    R²_total=13.19%, R²_pred=-0.03%, SR=4.92
+
+  Training CA3 K=6...
+    R²_total=13.29%, R²_pred=0.04%, SR=5.01
+
+  Comparison saved to /scratch/network/lo8603/final_project/outputs/tables/model_comparison.csv
+
+============================================================
+  Done!
+============================================================

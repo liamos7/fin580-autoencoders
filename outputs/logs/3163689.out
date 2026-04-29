@@ -1,0 +1,240 @@
+Shell started on adroit-h11g2 at Wed Apr 29 06:17:23 PM EDT 2026
+Starting Python...
+
+============================================================
+  STEP 1: Data Loading and Preprocessing
+============================================================
+  Loading processed panel from data/processed/panel_processed.parquet...
+  4,221,335 stock-months, 56 characteristics
+  Train: 2,640,591 obs (197201-200512)
+  Val:   403,373 obs (200601-201012)
+  Test:  1,177,371 obs (201101-202312)
+
+  Converting to tensors...
+
+============================================================
+  STEP 2: Managed Portfolio Construction
+============================================================
+
+  Dataset sizes: train=2,640,591, val=403,373, test=1,177,371
+
+============================================================
+  STEP 3: Training CA2 with K=5
+============================================================
+
+  Seed 1/10
+    Epoch   0 | Train: 0.029245 | Val: 0.026046 (recon: 0.024416) | Patience: 0/10
+    Epoch  10 | Train: 0.027194 | Val: 0.024187 (recon: 0.023542) | Patience: 1/10
+    Epoch  20 | Train: 0.027136 | Val: 0.024009 (recon: 0.023500) | Patience: 1/10
+    Epoch  30 | Train: 0.027099 | Val: 0.024158 (recon: 0.023694) | Patience: 2/10
+    Epoch  40 | Train: 0.027077 | Val: 0.023864 (recon: 0.023434) | Patience: 8/10
+    Epoch  42 | Train: 0.027117 | Val: 0.023922 (recon: 0.023487) | Patience: 10/10
+    Early stopping at epoch 42
+
+  Seed 2/10
+    Epoch   0 | Train: 0.029599 | Val: 0.026132 (recon: 0.024454) | Patience: 0/10
+    Epoch  10 | Train: 0.027164 | Val: 0.024327 (recon: 0.023612) | Patience: 2/10
+    Epoch  20 | Train: 0.027045 | Val: 0.023919 (recon: 0.023343) | Patience: 1/10
+    Epoch  30 | Train: 0.026986 | Val: 0.023855 (recon: 0.023331) | Patience: 1/10
+    Epoch  40 | Train: 0.026954 | Val: 0.023768 (recon: 0.023274) | Patience: 3/10
+    Epoch  47 | Train: 0.026949 | Val: 0.023766 (recon: 0.023271) | Patience: 10/10
+    Early stopping at epoch 47
+
+  Seed 3/10
+    Epoch   0 | Train: 0.029334 | Val: 0.025985 (recon: 0.024256) | Patience: 0/10
+    Epoch  10 | Train: 0.027138 | Val: 0.024237 (recon: 0.023570) | Patience: 0/10
+    Epoch  20 | Train: 0.027082 | Val: 0.023976 (recon: 0.023452) | Patience: 0/10
+    Epoch  30 | Train: 0.027082 | Val: 0.023942 (recon: 0.023466) | Patience: 1/10
+    Epoch  40 | Train: 0.027073 | Val: 0.023970 (recon: 0.023523) | Patience: 5/10
+    Epoch  50 | Train: 0.027062 | Val: 0.023919 (recon: 0.023491) | Patience: 8/10
+    Epoch  52 | Train: 0.027049 | Val: 0.023932 (recon: 0.023500) | Patience: 10/10
+    Early stopping at epoch 52
+
+  Seed 4/10
+    Epoch   0 | Train: 0.029444 | Val: 0.026044 (recon: 0.024398) | Patience: 0/10
+    Epoch  10 | Train: 0.027092 | Val: 0.024038 (recon: 0.023333) | Patience: 0/10
+    Epoch  20 | Train: 0.026999 | Val: 0.024091 (recon: 0.023501) | Patience: 4/10
+    Epoch  30 | Train: 0.027005 | Val: 0.023726 (recon: 0.023204) | Patience: 0/10
+    Epoch  40 | Train: 0.026972 | Val: 0.023781 (recon: 0.023297) | Patience: 10/10
+    Early stopping at epoch 40
+
+  Seed 5/10
+    Epoch   0 | Train: 0.029418 | Val: 0.026154 (recon: 0.024445) | Patience: 0/10
+    Epoch  10 | Train: 0.027129 | Val: 0.024213 (recon: 0.023469) | Patience: 1/10
+    Epoch  20 | Train: 0.027012 | Val: 0.023963 (recon: 0.023342) | Patience: 2/10
+    Epoch  30 | Train: 0.026985 | Val: 0.023991 (recon: 0.023432) | Patience: 2/10
+    Epoch  40 | Train: 0.026964 | Val: 0.023767 (recon: 0.023254) | Patience: 0/10
+    Epoch  50 | Train: 0.026949 | Val: 0.023779 (recon: 0.023287) | Patience: 1/10
+    Epoch  60 | Train: 0.026942 | Val: 0.023815 (recon: 0.023321) | Patience: 2/10
+    Epoch  68 | Train: 0.026932 | Val: 0.023834 (recon: 0.023369) | Patience: 10/10
+    Early stopping at epoch 68
+
+  Seed 6/10
+    Epoch   0 | Train: 0.030178 | Val: 0.026587 (recon: 0.024791) | Patience: 0/10
+    Epoch  10 | Train: 0.027186 | Val: 0.024198 (recon: 0.023514) | Patience: 1/10
+    Epoch  20 | Train: 0.027053 | Val: 0.023991 (recon: 0.023384) | Patience: 1/10
+    Epoch  30 | Train: 0.026973 | Val: 0.023768 (recon: 0.023239) | Patience: 0/10
+    Epoch  40 | Train: 0.026967 | Val: 0.023838 (recon: 0.023309) | Patience: 3/10
+    Epoch  50 | Train: 0.026934 | Val: 0.023758 (recon: 0.023265) | Patience: 8/10
+    Epoch  52 | Train: 0.026947 | Val: 0.023776 (recon: 0.023288) | Patience: 10/10
+    Early stopping at epoch 52
+
+  Seed 7/10
+    Epoch   0 | Train: 0.028973 | Val: 0.026064 (recon: 0.024360) | Patience: 0/10
+    Epoch  10 | Train: 0.027176 | Val: 0.024234 (recon: 0.023530) | Patience: 1/10
+    Epoch  20 | Train: 0.027129 | Val: 0.023993 (recon: 0.023436) | Patience: 0/10
+    Epoch  30 | Train: 0.027108 | Val: 0.024004 (recon: 0.023524) | Patience: 2/10
+    Epoch  40 | Train: 0.027101 | Val: 0.023912 (recon: 0.023461) | Patience: 4/10
+    Epoch  46 | Train: 0.027082 | Val: 0.023941 (recon: 0.023499) | Patience: 10/10
+    Early stopping at epoch 46
+
+  Seed 8/10
+    Epoch   0 | Train: 0.029671 | Val: 0.026013 (recon: 0.024358) | Patience: 0/10
+    Epoch  10 | Train: 0.027151 | Val: 0.024132 (recon: 0.023466) | Patience: 0/10
+    Epoch  20 | Train: 0.027009 | Val: 0.023898 (recon: 0.023310) | Patience: 0/10
+    Epoch  30 | Train: 0.026967 | Val: 0.023820 (recon: 0.023284) | Patience: 0/10
+    Epoch  40 | Train: 0.026955 | Val: 0.023895 (recon: 0.023393) | Patience: 1/10
+    Epoch  50 | Train: 0.026962 | Val: 0.023751 (recon: 0.023264) | Patience: 6/10
+    Epoch  54 | Train: 0.026948 | Val: 0.023702 (recon: 0.023211) | Patience: 10/10
+    Early stopping at epoch 54
+
+  Seed 9/10
+    Epoch   0 | Train: 0.030013 | Val: 0.026326 (recon: 0.024572) | Patience: 0/10
+    Epoch  10 | Train: 0.027204 | Val: 0.024335 (recon: 0.023647) | Patience: 1/10
+    Epoch  20 | Train: 0.027062 | Val: 0.023953 (recon: 0.023389) | Patience: 1/10
+    Epoch  30 | Train: 0.027007 | Val: 0.023813 (recon: 0.023309) | Patience: 2/10
+    Epoch  40 | Train: 0.026978 | Val: 0.023805 (recon: 0.023310) | Patience: 8/10
+    Epoch  50 | Train: 0.026954 | Val: 0.023796 (recon: 0.023314) | Patience: 3/10
+    Epoch  57 | Train: 0.026989 | Val: 0.023722 (recon: 0.023237) | Patience: 10/10
+    Early stopping at epoch 57
+
+  Seed 10/10
+    Epoch   0 | Train: 0.029636 | Val: 0.026115 (recon: 0.024464) | Patience: 0/10
+    Epoch  10 | Train: 0.027171 | Val: 0.024151 (recon: 0.023477) | Patience: 0/10
+    Epoch  20 | Train: 0.027081 | Val: 0.023946 (recon: 0.023387) | Patience: 0/10
+    Epoch  30 | Train: 0.027002 | Val: 0.023774 (recon: 0.023234) | Patience: 0/10
+    Epoch  40 | Train: 0.026970 | Val: 0.023837 (recon: 0.023313) | Patience: 1/10
+    Epoch  49 | Train: 0.026938 | Val: 0.023754 (recon: 0.023239) | Patience: 10/10
+    Early stopping at epoch 49
+
+============================================================
+  STEP 4: Out-of-Sample Evaluation
+============================================================
+
+==================================================
+  CA2_K5 Evaluation Results
+==================================================
+  R²_total:        13.39%
+  R²_pred:         -0.21%
+  Sharpe (EW):     5.13
+  Sharpe (tang.):  16.32
+
+============================================================
+  STEP 5: Extensions (Plans A & B)
+  Model: CA2 K=5
+============================================================
+
+  Plan A: Anomaly scoring on residuals...
+
+  Portfolio sort results:
+ quintile        label  mean_return_monthly  std_return  sharpe_annual  n_months
+        1  Low anomaly             0.005413    0.047192       0.397325       155
+        2           Q2             0.005625    0.047662       0.408821       155
+        3           Q3             0.006334    0.048085       0.456337       155
+        4           Q4             0.006262    0.049207       0.440870       155
+        5 High anomaly             0.004872    0.049521       0.340805       155
+        0   High - Low            -0.000541    0.006626      -0.282798       155
+
+  Predictive regression:
+    intercept: 0.0009
+    anomaly_coeff: -0.0015
+    rhat_coeff: 0.9649
+    anomaly_tstat: -1.3770
+    rhat_tstat: 424.5071
+    r_squared: 0.1338
+    n_obs: 1167208
+
+  Plan B: Energy regularization ablation...
+
+  Energy λ=0, Disentangle γ=0
+
+  Energy λ=0, Disentangle γ=0.0001
+
+  Energy λ=0, Disentangle γ=0.001
+
+  Energy λ=0, Disentangle γ=0.01
+
+  Energy λ=0, Disentangle γ=0.1
+
+  Energy λ=0.0001, Disentangle γ=0
+
+  Energy λ=0.0001, Disentangle γ=0.0001
+
+  Energy λ=0.0001, Disentangle γ=0.001
+
+  Energy λ=0.0001, Disentangle γ=0.01
+
+  Energy λ=0.0001, Disentangle γ=0.1
+
+  Energy λ=0.001, Disentangle γ=0
+
+  Energy λ=0.001, Disentangle γ=0.0001
+
+  Energy λ=0.001, Disentangle γ=0.001
+
+  Energy λ=0.001, Disentangle γ=0.01
+
+  Energy λ=0.001, Disentangle γ=0.1
+
+  Energy λ=0.01, Disentangle γ=0
+
+  Energy λ=0.01, Disentangle γ=0.0001
+
+  Energy λ=0.01, Disentangle γ=0.001
+
+  Energy λ=0.01, Disentangle γ=0.01
+
+  Energy λ=0.01, Disentangle γ=0.1
+
+  Energy λ=0.1, Disentangle γ=0
+
+  Energy λ=0.1, Disentangle γ=0.0001
+
+  Energy λ=0.1, Disentangle γ=0.001
+
+  Energy λ=0.1, Disentangle γ=0.01
+
+  Energy λ=0.1, Disentangle γ=0.1
+
+  Ablation results:
+ energy_lambda  disentangle_gamma  r2_total   r2_pred  final_train_loss  final_val_loss
+        0.0000             0.0000  0.133111 -0.001051          0.026926        0.023678
+        0.0000             0.0001  0.132484 -0.001134          0.026948        0.023765
+        0.0000             0.0010  0.132174 -0.001571          0.026935        0.023789
+        0.0000             0.0100  0.132758 -0.000731          0.026970        0.023804
+        0.0000             0.1000  0.133079 -0.001258          0.026938        0.023748
+        0.0001             0.0000  0.130709 -0.001386          0.026992        0.023781
+        0.0001             0.0001  0.131009 -0.001543          0.026988        0.023820
+        0.0001             0.0010  0.132833 -0.000660          0.026948        0.023828
+        0.0001             0.0100  0.131609 -0.001338          0.026923        0.023802
+        0.0001             0.1000  0.132699 -0.000948          0.026947        0.023698
+        0.0010             0.0000  0.128531 -0.001287          0.027083        0.023863
+        0.0010             0.0001  0.130477 -0.001256          0.026954        0.023808
+        0.0010             0.0010  0.132297 -0.001137          0.026918        0.023930
+        0.0010             0.0100  0.132037 -0.001352          0.026949        0.023769
+        0.0010             0.1000  0.133617 -0.000789          0.026908        0.023708
+        0.0100             0.0000  0.132547 -0.001176          0.026943        0.023765
+        0.0100             0.0001  0.128494 -0.001562          0.027076        0.023901
+        0.0100             0.0010  0.127765 -0.001102          0.027081        0.023868
+        0.0100             0.0100  0.130134 -0.001327          0.026915        0.023744
+        0.0100             0.1000  0.131108 -0.001550          0.026944        0.023766
+        0.1000             0.0000  0.128746 -0.001164          0.027030        0.023943
+        0.1000             0.0001  0.132498 -0.000965          0.026942        0.023935
+        0.1000             0.0010  0.132691 -0.000530          0.026934        0.023766
+        0.1000             0.0100  0.132267 -0.001306          0.026928        0.023688
+        0.1000             0.1000  0.133291 -0.001142          0.026941        0.023806
+
+============================================================
+  Done!
+============================================================
+Python exited with code 0

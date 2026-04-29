@@ -1,0 +1,5 @@
+
+============================================================
+  STEP 1: Data Loading and Preprocessing
+============================================================
+  Loading processed panel from data/processed/panel_processed.parquet...

@@ -146,9 +146,10 @@ def portfolio_sort_analysis(
     
     # Add long-short (high anomaly - low anomaly)
     if len(df) >= 2:
-        ls_ret = np.array(quintile_returns[n_quantiles - 1]) - np.array(
-            quintile_returns[0][:len(quintile_returns[n_quantiles - 1])]
-        )
+        high = np.array(quintile_returns[n_quantiles - 1])
+        low = np.array(quintile_returns[0])
+        n_common = min(len(high), len(low))
+        ls_ret = high[:n_common] - low[:n_common]
         df = pd.concat([df, pd.DataFrame([{
             "quintile": 0,
             "label": "High - Low",
@@ -229,31 +230,157 @@ def transition_analysis(
     dataset: AssetPricingDataset,
     residuals: list,
     actual_returns: list,
+    panel_df: pd.DataFrame,
     lookback: int = 6,
     lookahead: int = 6,
+    n_quantiles: int = config.N_QUANTILES,
 ) -> Dict:
     """
     Plan A, Test 3: Transition analysis.
-    
-    Track stocks that move from low-anomaly to high-anomaly.
-    Do these transitions predict factor loading changes, earnings
-    surprises, or other fundamental shifts?
-    
-    Analogous to the trigger detecting a transition from background
-    to new-physics event.
+
+    Track stocks that move from the bottom anomaly quintile into the top
+    quintile (low-to-high transition). Examine their returns over the
+    subsequent lookahead window vs. stocks that stay low-anomaly.
+
+    Analogous to the trigger detecting a transition from background to a
+    new-physics event: a sudden jump in reconstruction error flags a
+    structural break in a stock's factor exposure.
+
+    Args:
+        dataset:        AssetPricingDataset for the test period.
+        residuals:      list of (N_t,) residual arrays from compute_anomaly_scores.
+        actual_returns: list of (N_t,) actual return arrays.
+        panel_df:       raw test DataFrame with columns [permno, date, ...],
+                        sorted by [permno, date] — used to recover stock identities.
+        lookback:       months of history used to classify a stock as "low anomaly".
+        lookahead:      months over which post-transition returns are measured.
     """
-    # This requires stock-level tracking across months, which needs
-    # the permno information. Placeholder structure:
-    
+    from collections import defaultdict
+
+    dates = sorted(panel_df["date"].unique())
+    T = len(dates)
+
+    # Build permno list per month (matches the order in residuals/actual_returns,
+    # since prepare_tensors iterates month_df in the panel's row order)
+    permnos_by_month = []
+    for date in dates:
+        permnos_by_month.append(panel_df[panel_df["date"] == date]["permno"].values)
+
+    # ── Step 1: compute anomaly score (|ε|) per stock-month ──
+    # Store as {permno: [(t, score), ...]}
+    stock_scores: dict = defaultdict(list)
+    for t in range(T):
+        eps = residuals[t]
+        permnos = permnos_by_month[t]
+        n = min(len(eps), len(permnos))
+        for i in range(n):
+            stock_scores[permnos[i]].append((t, abs(eps[i])))
+
+    # ── Step 2: for each month t ≥ lookback, classify each stock ──
+    # A stock is "previously low" if its mean |ε| over [t-lookback, t-1]
+    # fell in the bottom quintile of the cross-section at t-1.
+    # A "transition" occurs when its score at t is in the top quintile.
+
+    # Pre-compute cross-sectional quintile thresholds per month
+    lo_thresh = {}   # bottom-quintile upper bound at month t
+    hi_thresh = {}   # top-quintile lower bound at month t
+    for t in range(T):
+        eps = np.abs(residuals[t])
+        if len(eps) >= n_quantiles * 5:
+            lo_thresh[t] = np.percentile(eps, 100 / n_quantiles)
+            hi_thresh[t] = np.percentile(eps, 100 * (n_quantiles - 1) / n_quantiles)
+
+    # ── Step 3: identify transitions and collect forward returns ──
+    transition_fwd_returns = []   # post-transition cumulative returns
+    control_fwd_returns = []      # stocks that stay low-anomaly
+
+    for permno, history in stock_scores.items():
+        t_vals = [h[0] for h in history]
+        s_vals = np.array([h[1] for h in history])
+        t_index = {t: i for i, t in enumerate(t_vals)}
+
+        for idx, (t, score) in enumerate(history):
+            if t < lookback or t + lookahead >= T:
+                continue
+            if t not in hi_thresh or t not in lo_thresh:
+                continue
+
+            # Check lookback window: was stock consistently low-anomaly?
+            lookback_scores = [
+                s_vals[t_index[s]] for s in range(t - lookback, t)
+                if s in t_index and s in lo_thresh
+            ]
+            if len(lookback_scores) < lookback // 2:
+                continue
+
+            was_low = np.mean(lookback_scores) <= lo_thresh[t - 1] if (t - 1) in lo_thresh else False
+
+            # Collect lookahead returns for this stock
+            fwd = [
+                s_vals[t_index[s]] for s in range(t + 1, t + lookahead + 1)
+                if s in t_index
+            ]
+            # Use actual returns instead of anomaly scores for forward performance
+            fwd_rets = []
+            for s in range(t + 1, t + lookahead + 1):
+                permnos_s = permnos_by_month[s] if s < T else []
+                pos = np.where(permnos_s == permno)[0]
+                if len(pos) > 0 and pos[0] < len(actual_returns[s]):
+                    fwd_rets.append(actual_returns[s][pos[0]])
+
+            if len(fwd_rets) < lookahead // 2:
+                continue
+
+            cum_ret = np.prod(1 + np.array(fwd_rets)) - 1
+
+            if was_low and score >= hi_thresh[t]:
+                # Transition: low → high anomaly
+                transition_fwd_returns.append(cum_ret)
+            elif was_low and score <= lo_thresh[t]:
+                # Control: stayed low
+                control_fwd_returns.append(cum_ret)
+
+    # ── Step 4: summarise ──
+    def summarise(rets: list, label: str) -> dict:
+        if len(rets) == 0:
+            return {"group": label, "n": 0, "mean_cum_ret": np.nan,
+                    "std": np.nan, "sharpe_annual": np.nan}
+        r = np.array(rets)
+        ann_sharpe = r.mean() / (r.std() + 1e-10) * np.sqrt(12 / lookahead)
+        return {
+            "group": label,
+            "n": len(r),
+            "mean_cum_ret": r.mean(),
+            "std": r.std(),
+            "sharpe_annual": ann_sharpe,
+        }
+
+    rows = [
+        summarise(transition_fwd_returns, f"Low→High anomaly (transition)"),
+        summarise(control_fwd_returns,    f"Low→Low anomaly (control)"),
+    ]
+
+    spread = np.nan
+    if transition_fwd_returns and control_fwd_returns:
+        n = min(len(transition_fwd_returns), len(control_fwd_returns))
+        diff = np.array(transition_fwd_returns[:n]) - np.array(control_fwd_returns[:n])
+        spread_sharpe = diff.mean() / (diff.std() + 1e-10) * np.sqrt(12 / lookahead)
+        rows.append({
+            "group": "Transition − Control (spread)",
+            "n": n,
+            "mean_cum_ret": diff.mean(),
+            "std": diff.std(),
+            "sharpe_annual": spread_sharpe,
+        })
+
+    results_df = pd.DataFrame(rows)
+
     return {
-        "note": "Requires permno-level panel tracking. "
-                "Implement after data pipeline is connected.",
-        "methodology": (
-            "1. Compute rolling anomaly score per stock over lookback window. "
-            "2. Flag stocks whose score crosses from bottom to top quintile. "
-            "3. Examine subsequent beta changes, return volatility shifts, "
-            "   and earnings surprise magnitudes over lookahead window."
-        ),
+        "summary": results_df,
+        "n_transitions": len(transition_fwd_returns),
+        "n_controls": len(control_fwd_returns),
+        "lookback_months": lookback,
+        "lookahead_months": lookahead,
     }
 
 
@@ -476,13 +603,13 @@ def run_energy_ablation(
             ).to(config.DEVICE)
             
             # Train (simplified: single seed for ablation speed)
-            from train import train_single_model
+            from train_test_val.train import train_single_model
             model, history = train_single_model(
                 model, train_data, val_data, verbose=False
             )
-            
+
             # Evaluate
-            from evaluate import compute_r2_total, compute_r2_pred
+            from train_test_val.evaluate import compute_r2_total, compute_r2_pred
             r2_total = compute_r2_total([model], test_data)
             r2_pred = compute_r2_pred([model], test_data)
             
