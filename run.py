@@ -29,7 +29,7 @@ from src.data_loader import build_panel, split_panel, prepare_tensors
 from train_test_val.managed_portfolios import compute_managed_portfolios_from_tensors
 from train_test_val.models import build_model
 from train_test_val.train import AssetPricingDataset, train_ensemble, tune_l1
-from train_test_val.evaluate import evaluate_model, compare_models
+from train_test_val.evaluate import evaluate_model, compare_models, compute_long_short_sharpe, test_hl_significance
 
 
 def parse_args():
@@ -206,12 +206,31 @@ def main():
             models, test_data
         )
 
-        sort_results = portfolio_sort_analysis(
-            test_data, residuals, act_ret
+        import math
+
+        sort_results, anomaly_hl_series = portfolio_sort_analysis(
+            test_data, residuals, act_ret, return_hl_series=True
         )
         print("\n  Portfolio sort results:")
         print(sort_results.to_string(index=False))
         sort_results.to_csv(config.TABLE_DIR + "plan_a_portfolio_sorts.csv", index=False)
+
+        # H-L significance: anomaly-score quintile sort
+        print("\n  H-L significance (anomaly quintile sort)...")
+        if len(anomaly_hl_series) > 0:
+            nw_lags = math.floor(len(anomaly_hl_series) ** 0.25)
+            sig_anomaly = test_hl_significance(anomaly_hl_series, newey_west_lags=nw_lags)
+            print(sig_anomaly.to_string(index=False))
+            sig_anomaly.to_csv(config.TABLE_DIR + "plan_a_hl_significance_anomaly.csv", index=False)
+
+        # H-L significance: predicted-return decile sort
+        print("\n  H-L significance (predicted-return decile sort)...")
+        _, pred_hl_series = compute_long_short_sharpe(models, test_data, return_series=True)
+        if len(pred_hl_series) > 0:
+            nw_lags = math.floor(len(pred_hl_series) ** 0.25)
+            sig_pred = test_hl_significance(pred_hl_series, newey_west_lags=nw_lags)
+            print(sig_pred.to_string(index=False))
+            sig_pred.to_csv(config.TABLE_DIR + "plan_a_hl_significance_pred.csv", index=False)
 
         reg_results = predictive_regression(
             test_data, residuals, pred_ret, act_ret

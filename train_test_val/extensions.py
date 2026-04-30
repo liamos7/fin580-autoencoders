@@ -82,7 +82,8 @@ def portfolio_sort_analysis(
     residuals: list,
     actual_returns: list,
     n_quantiles: int = config.N_QUANTILES,
-) -> pd.DataFrame:
+    return_hl_series: bool = False,
+):
     """
     Plan A, Test 1: Portfolio sorts by anomaly score.
     
@@ -145,6 +146,7 @@ def portfolio_sort_analysis(
     df = pd.DataFrame(results)
     
     # Add long-short (high anomaly - low anomaly)
+    ls_ret = np.array([])
     if len(df) >= 2:
         high = np.array(quintile_returns[n_quantiles - 1])
         low = np.array(quintile_returns[0])
@@ -158,8 +160,8 @@ def portfolio_sort_analysis(
             "sharpe_annual": ls_ret.mean() / max(ls_ret.std(), 1e-10) * np.sqrt(12),
             "n_months": len(ls_ret),
         }])], ignore_index=True)
-    
-    return df
+
+    return (df, ls_ret) if return_hl_series else df
 
 
 def predictive_regression(

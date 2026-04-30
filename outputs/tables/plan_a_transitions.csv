@@ -1,0 +1,4 @@
+group,n,mean_cum_ret,std,sharpe_annual
+Low→High anomaly (transition),301,0.046417333,0.22859603,0.2871616939170335
+Low→Low anomaly (control),21997,0.027322369,0.09747173,0.39641918004606663
+Transition − Control (spread),301,-0.0012670355,0.26152545,-0.006851565549681042

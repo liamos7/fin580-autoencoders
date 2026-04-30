@@ -1,0 +1,59 @@
+Started on adroit-h11n5 at Wed Apr 29 09:28:41 PM EDT 2026
+
+── Loading CRSP chars from checkpoint ──
+  4,687,255 rows
+
+── Building Compustat annual characteristics ──
+  Done: 334,651 rows
+
+── Building Compustat quarterly characteristics ──
+  Done: 1,188,830 rows
+
+── Merging new characteristics into panel ──
+  Existing panel: 4,221,335 rows, 59 cols
+
+  Added 35 characteristics:
+    mvel1                         100.0% non-missing
+    turn                          93.0% non-missing
+    mom36m                        76.1% non-missing
+    chmom                         92.2% non-missing
+    betasq                        81.8% non-missing
+    egr                           67.3% non-missing
+    chcsho                        72.3% non-missing
+    rd_mve                        79.5% non-missing
+    sgr                           67.1% non-missing
+    lgr                           67.2% non-missing
+    depr                          72.1% non-missing
+    secured                       73.8% non-missing
+    securedind                    79.5% non-missing
+    roic                          79.5% non-missing
+    salerec                       72.0% non-missing
+    salecash                      73.4% non-missing
+    saleinv                       71.9% non-missing
+    pchsaleinv                    65.4% non-missing
+    currat                        60.8% non-missing
+    quick                         60.8% non-missing
+    pchquick                      55.4% non-missing
+    cinvest                       73.5% non-missing
+    pchdepr                       65.7% non-missing
+    grgma                         67.1% non-missing
+    pchgm_pchsale                 67.1% non-missing
+    pchsale_pchxsga               55.1% non-missing
+    pchsale_pchinvt               65.4% non-missing
+    pchsale_pchrect               65.5% non-missing
+    bm_ia                         79.5% non-missing
+    mve_ia                        79.5% non-missing
+    cfp_ia                        79.5% non-missing
+    chpmia                        67.1% non-missing
+    chatoia                       67.0% non-missing
+    rsup                          66.8% non-missing
+    roavol                        65.2% non-missing
+
+  Imputing with cross-sectional medians...
+  Rank-normalizing...
+
+  Final panel: 4,221,335 rows, 91 characteristics
+  Saved to data/processed/panel_processed.parquet
+
+Done. Resubmit your training SLURM job.
+Exited with code 0 at Wed Apr 29 09:38:24 PM EDT 2026

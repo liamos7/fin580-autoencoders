@@ -1,0 +1,122 @@
+Shell started on adroit-h11g2 at Wed Apr 29 10:26:53 PM EDT 2026
+Starting Python...
+
+============================================================
+  STEP 1: Data Loading and Preprocessing
+============================================================
+  Loading processed panel from data/processed/panel_processed.parquet...
+  4,221,335 stock-months, 91 characteristics
+  Train: 2,640,591 obs (197201-200512)
+  Val:   403,373 obs (200601-201012)
+  Test:  1,177,371 obs (201101-202312)
+
+  Converting to tensors...
+
+============================================================
+  STEP 2: Managed Portfolio Construction
+============================================================
+
+  Dataset sizes: train=2,640,591, val=403,373, test=1,177,371
+
+============================================================
+  STEP 3: Training CA2 with K=6
+============================================================
+
+  Training IPCA K=1...
+    R²_total=3.19%, R²_pred=-0.03%, SR=5.36
+
+  Training IPCA K=2...
+    R²_total=5.52%, R²_pred=0.25%, SR=7.12
+
+  Training IPCA K=3...
+    R²_total=5.93%, R²_pred=0.39%, SR=7.59
+
+  Training IPCA K=4...
+    R²_total=6.26%, R²_pred=1.28%, SR=7.61
+
+  Training IPCA K=5...
+    R²_total=6.32%, R²_pred=0.12%, SR=7.58
+
+  Training IPCA K=6...
+    R²_total=6.20%, R²_pred=0.20%, SR=7.48
+
+  Training CA0 K=1...
+    R²_total=11.76%, R²_pred=0.03%, SR=2.72
+
+  Training CA0 K=2...
+    R²_total=14.39%, R²_pred=0.32%, SR=6.47
+
+  Training CA0 K=3...
+    R²_total=15.02%, R²_pred=0.38%, SR=7.28
+
+  Training CA0 K=4...
+    R²_total=15.28%, R²_pred=0.96%, SR=7.39
+
+  Training CA0 K=5...
+    R²_total=15.23%, R²_pred=0.20%, SR=7.30
+
+  Training CA0 K=6...
+    R²_total=15.47%, R²_pred=0.34%, SR=7.42
+
+  Training CA1 K=1...
+    R²_total=11.95%, R²_pred=-0.00%, SR=3.19
+
+  Training CA1 K=2...
+    R²_total=20.56%, R²_pred=-0.60%, SR=8.44
+
+  Training CA1 K=3...
+    R²_total=21.89%, R²_pred=1.81%, SR=9.37
+
+  Training CA1 K=4...
+    R²_total=22.39%, R²_pred=1.44%, SR=9.30
+
+  Training CA1 K=5...
+    R²_total=23.02%, R²_pred=0.85%, SR=9.44
+
+  Training CA1 K=6...
+    R²_total=21.86%, R²_pred=0.53%, SR=9.07
+
+  Training CA2 K=1...
+    R²_total=12.37%, R²_pred=0.10%, SR=3.15
+
+  Training CA2 K=2...
+    R²_total=22.18%, R²_pred=-0.21%, SR=9.30
+
+  Training CA2 K=3...
+    R²_total=24.26%, R²_pred=1.81%, SR=10.14
+
+  Training CA2 K=4...
+    R²_total=24.53%, R²_pred=-0.82%, SR=10.08
+
+  Training CA2 K=5...
+    R²_total=25.05%, R²_pred=0.67%, SR=10.20
+
+  Training CA2 K=6...
+    R²_total=25.13%, R²_pred=0.85%, SR=10.05
+
+  Training CA3 K=1...
+    R²_total=12.82%, R²_pred=0.01%, SR=3.18
+
+  Training CA3 K=2...
+    R²_total=22.18%, R²_pred=0.04%, SR=9.18
+
+  Training CA3 K=3...
+    R²_total=24.06%, R²_pred=2.32%, SR=10.04
+
+  Training CA3 K=4...
+    R²_total=24.53%, R²_pred=1.31%, SR=10.02
+
+  Training CA3 K=5...
+    R²_total=24.80%, R²_pred=2.20%, SR=10.15
+
+  Training CA3 K=6...
+    R²_total=25.36%, R²_pred=0.62%, SR=10.21
+
+  Comparison saved to /scratch/network/lo8603/final_project/outputs/tables/model_comparison.csv
+
+  Best model: CA3 K=6 (R²_total=25.36%)
+
+============================================================
+  Done!
+============================================================
+Python exited with code 0

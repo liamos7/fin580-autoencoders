@@ -1,0 +1,7 @@
+Started on adroit-h11n6 at Wed Apr 29 09:08:41 PM EDT 2026
+
+── Loading CRSP chars from checkpoint ──
+  4,687,255 rows, 37,384 stocks
+
+── Pulling Compustat annual fundamentals ──
+Enter your WRDS username [lo8603]:Exited with code 1 at Wed Apr 29 09:08:43 PM EDT 2026

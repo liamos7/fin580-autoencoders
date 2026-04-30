@@ -18,7 +18,7 @@ cd /scratch/network/lo8603/final_project
 echo "Starting Python..."
 
 /scratch/network/lo8603/thesis/conda/envs/myenv/bin/python -u run.py --processed data/processed/panel_processed.parquet \
-    --architecture CA2 --K 5 --seeds 10 --verbose --run-extensions
+     --architecture "CA2" --K 6 --seeds 10 --verbose --run-extensions
 
 echo "Python exited with code $?"
 

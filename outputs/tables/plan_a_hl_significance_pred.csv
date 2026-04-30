@@ -1,0 +1,4 @@
+test,mean_monthly,t_stat,p_value,significant_5pct
+Newey-West (lags=3),0.17261687,23.902972518742256,2.8523330775932106e-126,True
+i.i.d. t-test,0.17261687,36.09395178276626,2.482485909084768e-77,True
+Wilcoxon signed-rank,0.17261687,0.0,2.377567288258578e-27,True

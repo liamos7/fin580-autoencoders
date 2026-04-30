@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/scratch/network/lo8603/final_project/run.py", line 269, in <module>
+    main()
+  File "/scratch/network/lo8603/final_project/run.py", line 222, in main
+    sig_anomaly = test_hl_significance(anomaly_hl_series, newey_west_lags=nw_lags)
+  File "/scratch/network/lo8603/final_project/train_test_val/evaluate.py", line 434, in test_hl_significance
+    import statsmodels.api as sm
+ModuleNotFoundError: No module named 'statsmodels'

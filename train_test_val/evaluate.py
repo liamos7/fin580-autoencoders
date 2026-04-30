@@ -121,69 +121,78 @@ def compute_r2_pred(
 def compute_long_short_sharpe(
     models: list,
     dataset: AssetPricingDataset,
-    returns_panel: np.ndarray,
-    chars_panel: np.ndarray,
-    mask_panel: np.ndarray,
-    mp_panel: np.ndarray,
+    returns_panel: np.ndarray = None,
+    chars_panel: np.ndarray = None,
+    mask_panel: np.ndarray = None,
+    mp_panel: np.ndarray = None,
     n_deciles: int = 10,
     value_weight: bool = False,
     mvel_idx: Optional[int] = None,
+    return_series: bool = False,
 ) -> float:
     """
     Long-short decile spread portfolio Sharpe ratio (Table 3).
-    
+
     Sort stocks into deciles by predicted return each month.
-    Buy top decile, sell bottom decile. Compute annualized SR.
-    
-    Args:
-        mvel_idx: Index of market equity characteristic in char_cols
-                  (needed for value-weighting). If None, equal-weight.
+    Buy top decile (10), sell bottom decile (1). Compute annualized SR.
+
+    Previous bugs fixed:
+    - np.percentile with '>=' / '<=' created overlapping buckets when
+      predicted returns had ties, inflating the spread.
+    - Now uses pd.qcut for clean, non-overlapping decile assignment.
     """
     monthly_returns = []
-    
+
     for t in range(dataset.T):
         chars_t, returns_t, mp_t = dataset.get_month_data(t)
-        if len(returns_t) < n_deciles * 2:
+        n_stocks = len(returns_t)
+        if n_stocks < n_deciles * 5:          # need ≥5 stocks per decile
             continue
-        
+
         # Get predicted returns
         r_hat, _, _ = ensemble_predict_month(models, chars_t, mp_t)
-        r_hat = r_hat.cpu().numpy()
+        r_hat_np = r_hat.cpu().numpy()
         r_actual = returns_t.cpu().numpy()
-        
-        # Sort into deciles
-        percentiles = np.percentile(r_hat, np.linspace(0, 100, n_deciles + 1))
-        
-        # Top decile (highest predicted return)
-        top_mask = r_hat >= percentiles[-2]
-        # Bottom decile (lowest predicted return)
-        bot_mask = r_hat <= percentiles[1]
-        
+
+        # Assign each stock to a decile (1 = lowest predicted, 10 = highest)
+        # pd.qcut handles ties via 'first' duplicate strategy
+        try:
+            decile_labels = pd.qcut(
+                r_hat_np, q=n_deciles, labels=False, duplicates="drop"
+            )
+        except ValueError:
+            # Degenerate distribution — skip this month
+            continue
+
+        top_mask = decile_labels == decile_labels.max()   # highest decile
+        bot_mask = decile_labels == decile_labels.min()   # lowest decile
+
+        if top_mask.sum() == 0 or bot_mask.sum() == 0:
+            continue
+
         if value_weight and mvel_idx is not None:
             weights_t = chars_t[:, mvel_idx].cpu().numpy()
-            # Market equity is rank-normalized to (-1,1), shift to positive
             weights_t = weights_t - weights_t.min() + 1e-6
-            
-            top_ret = np.average(r_actual[top_mask], 
-                                weights=weights_t[top_mask]) if top_mask.sum() > 0 else 0
+
+            top_ret = np.average(r_actual[top_mask],
+                                 weights=weights_t[top_mask])
             bot_ret = np.average(r_actual[bot_mask],
-                                weights=weights_t[bot_mask]) if bot_mask.sum() > 0 else 0
+                                 weights=weights_t[bot_mask])
         else:
-            top_ret = r_actual[top_mask].mean() if top_mask.sum() > 0 else 0
-            bot_ret = r_actual[bot_mask].mean() if bot_mask.sum() > 0 else 0
-        
+            top_ret = r_actual[top_mask].mean()
+            bot_ret = r_actual[bot_mask].mean()
+
         monthly_returns.append(top_ret - bot_ret)
-    
+
     monthly_returns = np.array(monthly_returns)
-    
+
     if len(monthly_returns) == 0:
-        return 0.0
-    
-    # Annualized Sharpe ratio
-    sr = monthly_returns.mean() / max(monthly_returns.std(), 1e-10)
+        return (0.0, monthly_returns) if return_series else 0.0
+
+    sr = monthly_returns.mean() / max(monthly_returns.std(ddof=1), 1e-10)
     sr_annual = sr * np.sqrt(12)
-    
-    return sr_annual
+
+    return (sr_annual, monthly_returns) if return_series else sr_annual
 
 
 def compute_tangency_sharpe(
@@ -244,7 +253,7 @@ def compute_tangency_sharpe(
     if len(tangency_returns) == 0:
         return 0.0
     
-    sr = tangency_returns.mean() / max(tangency_returns.std(), 1e-10)
+    sr = tangency_returns.mean() / max(tangency_returns.std(ddof=1), 1e-10)
     return sr * np.sqrt(12)
 
 
@@ -397,6 +406,72 @@ def evaluate_model(
         print(f"  Sharpe (tang.):  {sr_tangency:.2f}")
     
     return results
+
+
+def test_hl_significance(
+    monthly_hl_returns: np.ndarray,
+    newey_west_lags: int = 6,
+) -> pd.DataFrame:
+    """
+    Test whether the H-L portfolio mean return is significantly different from zero.
+
+    Runs three tests:
+      1. OLS t-test with Newey-West HAC standard errors (standard in asset pricing)
+      2. Simple i.i.d. t-test (scipy)
+      3. Wilcoxon signed-rank test (nonparametric, robust to fat tails)
+
+    Parameters
+    ----------
+    monthly_hl_returns : array of shape (T,)
+        Monthly H-L (or L-H) spread returns.
+    newey_west_lags : int
+        Bandwidth for Newey-West HAC correction (rule of thumb: floor(T^(1/4))).
+
+    Returns
+    -------
+    DataFrame with columns: test, mean_monthly, t_stat, p_value, significant_5pct
+    """
+    import statsmodels.api as sm
+    from scipy import stats as scipy_stats
+
+    T = len(monthly_hl_returns)
+    mean = monthly_hl_returns.mean()
+
+    rows = []
+
+    # 1. Newey-West
+    X = np.ones((T, 1))
+    res = sm.OLS(monthly_hl_returns, X).fit(
+        cov_type="HAC", cov_kwds={"maxlags": newey_west_lags}
+    )
+    rows.append({
+        "test": f"Newey-West (lags={newey_west_lags})",
+        "mean_monthly": mean,
+        "t_stat": float(res.tvalues[0]),
+        "p_value": float(res.pvalues[0]),
+    })
+
+    # 2. i.i.d. t-test
+    t_stat, p_val = scipy_stats.ttest_1samp(monthly_hl_returns, 0)
+    rows.append({
+        "test": "i.i.d. t-test",
+        "mean_monthly": mean,
+        "t_stat": float(t_stat),
+        "p_value": float(p_val),
+    })
+
+    # 3. Wilcoxon
+    stat, p_val_w = scipy_stats.wilcoxon(monthly_hl_returns)
+    rows.append({
+        "test": "Wilcoxon signed-rank",
+        "mean_monthly": mean,
+        "t_stat": float(stat),   # test statistic (not a t-stat)
+        "p_value": float(p_val_w),
+    })
+
+    df = pd.DataFrame(rows)
+    df["significant_5pct"] = df["p_value"] < 0.05
+    return df
 
 
 def compare_models(results_list: List[Dict]) -> pd.DataFrame:

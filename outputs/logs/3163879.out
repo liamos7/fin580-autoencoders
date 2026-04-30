@@ -1,0 +1,234 @@
+Shell started on adroit-h11g2 at Wed Apr 29 09:39:20 PM EDT 2026
+Starting Python...
+
+============================================================
+  STEP 1: Data Loading and Preprocessing
+============================================================
+  Loading processed panel from data/processed/panel_processed.parquet...
+  4,221,335 stock-months, 91 characteristics
+  Train: 2,640,591 obs (197201-200512)
+  Val:   403,373 obs (200601-201012)
+  Test:  1,177,371 obs (201101-202312)
+
+  Converting to tensors...
+
+============================================================
+  STEP 2: Managed Portfolio Construction
+============================================================
+
+  Dataset sizes: train=2,640,591, val=403,373, test=1,177,371
+
+============================================================
+  STEP 3: Training CA2 with K=4
+============================================================
+
+  Seed 1/10
+    Epoch   0 | Train: 0.027603 | Val: 0.024196 (recon: 0.022584) | Patience: 0/10
+    Epoch  10 | Train: 0.023306 | Val: 0.021997 (recon: 0.020756) | Patience: 2/10
+    Epoch  20 | Train: 0.022792 | Val: 0.021275 (recon: 0.020052) | Patience: 4/10
+    Epoch  26 | Train: 0.022545 | Val: 0.021055 (recon: 0.019831) | Patience: 10/10
+    Early stopping at epoch 26
+
+  Seed 2/10
+    Epoch   0 | Train: 0.028226 | Val: 0.024900 (recon: 0.023025) | Patience: 0/10
+    Epoch  10 | Train: 0.023237 | Val: 0.021501 (recon: 0.020238) | Patience: 0/10
+    Epoch  20 | Train: 0.022619 | Val: 0.021492 (recon: 0.020231) | Patience: 2/10
+    Epoch  30 | Train: 0.022088 | Val: 0.021728 (recon: 0.020452) | Patience: 2/10
+    Epoch  40 | Train: 0.021798 | Val: 0.021134 (recon: 0.019841) | Patience: 3/10
+    Epoch  50 | Train: 0.021587 | Val: 0.021018 (recon: 0.019678) | Patience: 9/10
+    Epoch  51 | Train: 0.021586 | Val: 0.020993 (recon: 0.019649) | Patience: 10/10
+    Early stopping at epoch 51
+
+  Seed 3/10
+    Epoch   0 | Train: 0.028317 | Val: 0.024500 (recon: 0.022815) | Patience: 0/10
+    Epoch  10 | Train: 0.023077 | Val: 0.021175 (recon: 0.019921) | Patience: 0/10
+    Epoch  20 | Train: 0.022559 | Val: 0.021461 (recon: 0.020227) | Patience: 2/10
+    Epoch  30 | Train: 0.022212 | Val: 0.020621 (recon: 0.019371) | Patience: 0/10
+    Epoch  40 | Train: 0.021916 | Val: 0.021249 (recon: 0.020000) | Patience: 4/10
+    Epoch  46 | Train: 0.021821 | Val: 0.020775 (recon: 0.019500) | Patience: 10/10
+    Early stopping at epoch 46
+
+  Seed 4/10
+    Epoch   0 | Train: 0.028529 | Val: 0.024751 (recon: 0.023154) | Patience: 0/10
+    Epoch  10 | Train: 0.023093 | Val: 0.021457 (recon: 0.020260) | Patience: 3/10
+    Epoch  20 | Train: 0.022634 | Val: 0.021597 (recon: 0.020316) | Patience: 4/10
+    Epoch  26 | Train: 0.022385 | Val: 0.021333 (recon: 0.020064) | Patience: 10/10
+    Early stopping at epoch 26
+
+  Seed 5/10
+    Epoch   0 | Train: 0.028184 | Val: 0.024889 (recon: 0.023136) | Patience: 0/10
+    Epoch  10 | Train: 0.023074 | Val: 0.021353 (recon: 0.020093) | Patience: 0/10
+    Epoch  20 | Train: 0.022336 | Val: 0.021652 (recon: 0.020374) | Patience: 3/10
+    Epoch  30 | Train: 0.022014 | Val: 0.020880 (recon: 0.019570) | Patience: 3/10
+    Epoch  37 | Train: 0.021836 | Val: 0.022054 (recon: 0.020729) | Patience: 10/10
+    Early stopping at epoch 37
+
+  Seed 6/10
+    Epoch   0 | Train: 0.028720 | Val: 0.024437 (recon: 0.022766) | Patience: 0/10
+    Epoch  10 | Train: 0.023233 | Val: 0.021496 (recon: 0.020257) | Patience: 0/10
+    Epoch  20 | Train: 0.022731 | Val: 0.021629 (recon: 0.020401) | Patience: 5/10
+    Epoch  30 | Train: 0.022313 | Val: 0.020982 (recon: 0.019755) | Patience: 4/10
+    Epoch  36 | Train: 0.022153 | Val: 0.020837 (recon: 0.019587) | Patience: 10/10
+    Early stopping at epoch 36
+
+  Seed 7/10
+    Epoch   0 | Train: 0.028875 | Val: 0.025069 (recon: 0.023168) | Patience: 0/10
+    Epoch  10 | Train: 0.023128 | Val: 0.021563 (recon: 0.020217) | Patience: 1/10
+    Epoch  20 | Train: 0.022741 | Val: 0.021069 (recon: 0.019727) | Patience: 1/10
+    Epoch  30 | Train: 0.022527 | Val: 0.021000 (recon: 0.019674) | Patience: 6/10
+    Epoch  40 | Train: 0.022108 | Val: 0.021837 (recon: 0.020489) | Patience: 6/10
+    Epoch  44 | Train: 0.021991 | Val: 0.020792 (recon: 0.019449) | Patience: 10/10
+    Early stopping at epoch 44
+
+  Seed 8/10
+    Epoch   0 | Train: 0.028777 | Val: 0.025425 (recon: 0.023704) | Patience: 0/10
+    Epoch  10 | Train: 0.023201 | Val: 0.021460 (recon: 0.020241) | Patience: 0/10
+    Epoch  20 | Train: 0.022706 | Val: 0.020978 (recon: 0.019764) | Patience: 4/10
+    Epoch  26 | Train: 0.022461 | Val: 0.020881 (recon: 0.019617) | Patience: 10/10
+    Early stopping at epoch 26
+
+  Seed 9/10
+    Epoch   0 | Train: 0.028434 | Val: 0.024550 (recon: 0.022862) | Patience: 0/10
+    Epoch  10 | Train: 0.023178 | Val: 0.021830 (recon: 0.020614) | Patience: 1/10
+    Epoch  20 | Train: 0.022551 | Val: 0.021119 (recon: 0.019924) | Patience: 0/10
+    Epoch  30 | Train: 0.022109 | Val: 0.020865 (recon: 0.019635) | Patience: 7/10
+    Epoch  33 | Train: 0.022023 | Val: 0.021186 (recon: 0.019894) | Patience: 10/10
+    Early stopping at epoch 33
+
+  Seed 10/10
+    Epoch   0 | Train: 0.028674 | Val: 0.024611 (recon: 0.022842) | Patience: 0/10
+    Epoch  10 | Train: 0.023099 | Val: 0.021693 (recon: 0.020399) | Patience: 2/10
+    Epoch  20 | Train: 0.022681 | Val: 0.020830 (recon: 0.019556) | Patience: 0/10
+    Epoch  30 | Train: 0.022154 | Val: 0.020812 (recon: 0.019532) | Patience: 1/10
+    Epoch  40 | Train: 0.022014 | Val: 0.020906 (recon: 0.019595) | Patience: 6/10
+    Epoch  44 | Train: 0.021856 | Val: 0.021149 (recon: 0.019823) | Patience: 10/10
+    Early stopping at epoch 44
+
+============================================================
+  STEP 4: Out-of-Sample Evaluation
+============================================================
+
+==================================================
+  CA2_K4 Evaluation Results
+==================================================
+  R²_total:        24.53%
+  R²_pred:         -0.82%
+  Sharpe (EW):     10.08
+  Sharpe (tang.):  12.98
+
+============================================================
+  STEP 5: Extensions (Plans A & B)
+  Model: CA2 K=4
+============================================================
+
+  Plan A: Anomaly scoring on residuals...
+
+  Portfolio sort results:
+ quintile        label  mean_return_monthly  std_return  sharpe_annual  n_months
+        1  Low anomaly             0.006110    0.047641       0.444256       155
+        2           Q2             0.005820    0.047159       0.427544       155
+        3           Q3             0.005947    0.048329       0.426300       155
+        4           Q4             0.005680    0.049001       0.401518       155
+        5 High anomaly             0.004949    0.049470       0.346553       155
+        0   High - Low            -0.001161    0.006374      -0.630757       155
+
+  Predictive regression:
+    intercept: -0.0031
+    anomaly_coeff: -0.0058
+    rhat_coeff: 1.0189
+    anomaly_tstat: -5.3160
+    rhat_tstat: 615.7883
+    r_squared: 0.2452
+    n_obs: 1167208
+
+  Transition analysis (low→high anomaly)...
+  Transitions found: 320, Controls: 22195
+                        group     n  mean_cum_ret      std  sharpe_annual
+Low→High anomaly (transition)   320      0.063821 0.242205       0.372643
+    Low→Low anomaly (control) 22195      0.027479 0.092165       0.421642
+Transition − Control (spread)   320      0.020363 0.260847       0.110398
+
+  Plan B: Energy regularization ablation...
+
+  Energy λ=0, Disentangle γ=0
+
+  Energy λ=0, Disentangle γ=0.0001
+
+  Energy λ=0, Disentangle γ=0.001
+
+  Energy λ=0, Disentangle γ=0.01
+
+  Energy λ=0, Disentangle γ=0.1
+
+  Energy λ=0.0001, Disentangle γ=0
+
+  Energy λ=0.0001, Disentangle γ=0.0001
+
+  Energy λ=0.0001, Disentangle γ=0.001
+
+  Energy λ=0.0001, Disentangle γ=0.01
+
+  Energy λ=0.0001, Disentangle γ=0.1
+
+  Energy λ=0.001, Disentangle γ=0
+
+  Energy λ=0.001, Disentangle γ=0.0001
+
+  Energy λ=0.001, Disentangle γ=0.001
+
+  Energy λ=0.001, Disentangle γ=0.01
+
+  Energy λ=0.001, Disentangle γ=0.1
+
+  Energy λ=0.01, Disentangle γ=0
+
+  Energy λ=0.01, Disentangle γ=0.0001
+
+  Energy λ=0.01, Disentangle γ=0.001
+
+  Energy λ=0.01, Disentangle γ=0.01
+
+  Energy λ=0.01, Disentangle γ=0.1
+
+  Energy λ=0.1, Disentangle γ=0
+
+  Energy λ=0.1, Disentangle γ=0.0001
+
+  Energy λ=0.1, Disentangle γ=0.001
+
+  Energy λ=0.1, Disentangle γ=0.01
+
+  Energy λ=0.1, Disentangle γ=0.1
+
+  Ablation results:
+ energy_lambda  disentangle_gamma  r2_total  r2_pred  final_train_loss  final_val_loss
+        0.0000             0.0000  0.232387 0.107753          0.021834        0.020736
+        0.0000             0.0001  0.242503 0.118852          0.021330        0.022094
+        0.0000             0.0010  0.219061 0.097744          0.022334        0.020861
+        0.0000             0.0100  0.249919 0.128462          0.021443        0.020939
+        0.0000             0.1000  0.245994 0.120588          0.021637        0.020597
+        0.0001             0.0000  0.231333 0.107508          0.022030        0.022008
+        0.0001             0.0001  0.244900 0.118693          0.021718        0.020751
+        0.0001             0.0010  0.236801 0.112003          0.021954        0.021001
+        0.0001             0.0100  0.214527 0.093308          0.022167        0.021140
+        0.0001             0.1000  0.230331 0.111063          0.021925        0.020920
+        0.0010             0.0000  0.228262 0.098730          0.022068        0.020698
+        0.0010             0.0001  0.233702 0.107289          0.021627        0.020856
+        0.0010             0.0010  0.222224 0.100503          0.022127        0.020657
+        0.0010             0.0100  0.230689 0.105945          0.022031        0.021297
+        0.0010             0.1000  0.235051 0.108150          0.022017        0.020744
+        0.0100             0.0000  0.245268 0.121220          0.021525        0.021305
+        0.0100             0.0001  0.227669 0.103707          0.022207        0.022149
+        0.0100             0.0010  0.223649 0.103065          0.022134        0.021190
+        0.0100             0.0100  0.242642 0.116583          0.021840        0.020358
+        0.0100             0.1000  0.232663 0.108241          0.021575        0.021186
+        0.1000             0.0000  0.231089 0.107156          0.022027        0.021394
+        0.1000             0.0001  0.227557 0.105436          0.021930        0.020835
+        0.1000             0.0010  0.236553 0.108689          0.021717        0.021990
+        0.1000             0.0100  0.256212 0.136033          0.021689        0.020385
+        0.1000             0.1000  0.245029 0.121655          0.021747        0.020955
+
+============================================================
+  Done!
+============================================================
+Python exited with code 0

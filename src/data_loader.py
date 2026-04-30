@@ -43,73 +43,147 @@ COL_RETURN = "ret"          # monthly excess return (already in excess of rf)
 # Chars absent from CZ entirely are simply dropped (noted at runtime).
 CZ_RENAME = {
     "yyyymm":           "date",
-    # Price trend
-    "mrreversal":       "mom1m",
+    # ── Price trend ──
+    "mrreversal":       "mom1m",        # short-term reversal (1-month)
     "mom6m":            "mom6m",
     "mom12m":           "mom12m",
+    "momreversal":      "mom36m",       # long-term reversal (36-month)
+    "chmom":            "chmom",        # change in 6-month momentum
     "indmom":           "indmom",
     "maxret":           "maxret",
-    # Liquidity
+    # ── Liquidity ──
+    "turn":             "turn",         # share turnover
+    "turnvolatility":   "std_turn",     # turnover volatility
     "std_turn":         "std_turn",
     "dolvol":           "dolvol",
-    "illiquidity":      "ill",
-    "zerotrade1m":      "zerotrade",
+    "illiquidity":      "ill",          # Amihud illiquidity
+    "zerotrade":        "zerotrade",
+    "zerotrade1m":      "zerotrade",    # alternative CZ name
     "bidaskspread":     "baspread",
-    "volsd":            "std_dolvol",   # std dev of dollar volume
-    # Risk
-    "realizedvol":      "retvol",
+    "baspread":         "baspread",
+    "volsd":            "std_dolvol",
+    "std_dolvol":       "std_dolvol",
+    # ── Risk ──
+    "realizedvol":      "retvol",       # total return volatility
+    "retvol":           "retvol",
+    "idiovol":          "idiovol",
     "idiovol3f":        "idiovol",
     "beta":             "beta",
-    # Value
+    "betasq":           "betasq",
+    # ── Value ──
     "bm":               "bm",
+    "bm_ia":            "bm_ia",        # book-to-market industry adjusted
+    "bmia":             "bm_ia",
     "ep":               "ep",
     "cfp":              "cfp",
+    "cfp_ia":           "cfp_ia",
+    "cfpia":            "cfp_ia",
     "leverage":         "lev",
-    "sp":               "sp",
-    "cashprod":         "cashpr",       # cash productivity
-    "divyieldst":       "dy",           # dividend yield
-    # Profitability
+    "lev":              "lev",
+    "sp":               "sp",           # sales-to-price
+    "cashprod":         "cashpr",
+    "cashpr":           "cashpr",
+    "divyield":         "dy",
+    "divyieldst":       "dy",
+    "dy":               "dy",
+    # ── Profitability ──
     "roaq":             "roaq",
-    "operprof":         "operprof",
-    "ps":               "ps",
+    "roic":             "roic",
     "roe":              "roeq",
-    "gp":               "gma",          # gross profitability / gross margin
-    # Investment
-    "investment":       "invest",
-    "grcapx":           "grcapx",
-    "chinv":            "chinv",
-    "chinvia":          "pchcapx_ia",   # capex change, industry-adjusted
-    "hire":             "hire",
+    "roeq":             "roeq",
+    "salerec":          "salerec",      # sales / receivables
+    "salecash":         "salecash",
+    "saleinv":          "saleinv",
+    "pchsaleinv":       "pchsaleinv",   # pct change sales/inventory
+    "operprof":         "operprof",
+    "ps":               "ps",           # financial statements score
+    "gp":               "gma",          # gross profitability
+    "gma":              "gma",
+    "rd_sale":          "rd_sale",
+    "rds":              "rd_sale",
+    "cashdebt":         "cashdebt",
+    "cf":               "cashdebt",     # alt CZ name: cash flow to debt
+    # ── Investment ──
     "assetgrowth":      "agr",
-    # Intangibles
+    "agr":              "agr",
+    "investment":       "invest",
+    "invest":           "invest",
+    "egr":              "egr",          # equity growth
+    "grcapx":           "grcapx",
+    "grgma":            "grgma",        # growth in gross margin (CZ may use GrGMA)
+    "chcsho":           "chcsho",       # change in shares outstanding
+    "chinv":            "chinv",
+    "chinvia":          "pchcapx_ia",
+    "pchcapx_ia":       "pchcapx_ia",
+    "hire":             "hire",
+    # ── Intangibles ──
     "orgcap":           "orgcap",
     "rd":               "rd",
-    "rds":              "rd_sale",      # R&D to sales
+    "rdmve":            "rd_mve",       # R&D to market equity
+    "rd_mve":           "rd_mve",
+    "accruals":         "acc",
+    "acc":              "acc",
+    "abnormalaccruals":  "absacc",
+    "absacc":           "absacc",
     "pctacc":           "pctacc",
-    "accruals":         "acc",          # accruals
-    "abnormalaccruals": "absacc",       # abnormal/absolute accruals
-    # Trading friction / earnings
-    "numearnincrease":  "nincr",        # number of earnings increases
-    "varcf":            "stdcf",        # variance/std dev of cash flow
-    "convdebt":         "convind",      # convertible debt indicator
-    "announcementreturn": "ear",        # earnings announcement return
-    "ms":               "ms",
+    # ── Trading friction / earnings ──
+    "numearnincrease":  "nincr",
+    "nincr":            "nincr",
+    "varcf":            "stdcf",
+    "stdcf":            "stdcf",
+    "convdebt":         "convind",
+    "convind":          "convind",
+    "announcementreturn": "ear",
+    "ear":              "ear",
+    "ms":               "ms",           # financial statements score
     "pricedelayslope":  "pricedelay",
+    "pricedelay":       "pricedelay",
     "firmage":          "age",
-    "revenuessurprise": "rsup",         # revenue surprise (note: CZ col is RevenueSurprise)
+    "age":              "age",
+    "revenuessurprise": "rsup",
+    "rsup":             "rsup",
     "sinalgo":          "sin",          # sin stock indicator
-    # Other
+    "sin":              "sin",
+    # ── Size ──
+    "mve_ia":           "mve_ia",       # market equity industry adjusted
+    "mveia":            "mve_ia",
+    "chpmia":           "chpmia",       # change in profit margin (IA)
+    "mvel1":            "mvel1",        # log market equity
+    # ── Leverage / solvency ──
+    "secured":          "secured",
+    "securedind":       "securedind",
+    "depr":             "depr",
+    "sgr":              "sgr",          # sales growth
+    "salesgrowth":      "sgr",
+    # ── Miscellaneous ──
+    "aeavol":           "aeavol",       # abnormal earnings announcement volume
     "cash":             "cash",
     "chtax":            "chtx",
-    "herf":             "herf",
+    "chtx":             "chtx",
+    "cinvest":          "cinvest",      # corporate investment
+    "currat":           "currat",       # current ratio
+    "herf":             "herf",         # industry Herfindahl
+    "lgr":              "lgr",          # liability growth
+    "pchdepr":          "pchdepr",
+    "pchgm_pchsale":    "pchgm_pchsale",
+    "pchquick":         "pchquick",
+    "pchsale_pchxsga":  "pchsale_pchxsga",
+    "pchsale_pchinvt":  "pchsale_pchinvt",
+    "pchsale_pchrect":  "pchsale_pchrect",
+    "quick":            "quick",
     "realestate":       "realestate",
-    "grltnoa":          "grltnoa",
+    "roavol":           "roavol",
     "tang":             "tang",
-    "chassetturnoever": "chatoia",      # change in asset turnover
-    "divinit":          "divi",         # dividend initiation
-    "divomit":          "divo",         # dividend omission
-    "tax":              "tb",           # tax-to-book
-    "cf":               "cashdebt",     # cash flow to debt
+    "chassetturnoever": "chatoia",
+    "chatoia":          "chatoia",
+    "divinit":          "divi",
+    "divi":             "divi",
+    "divomit":          "divo",
+    "divo":             "divo",
+    "grltnoa":          "grltnoa",
+    "salerecm":         "salerecm",     # not in CZ but keep for completeness
+    "tax":              "tb",
+    "tb":               "tb",
 }
 
 # The 94 characteristics from Gu, Kelly, Xiu (2020), using GKX names.
@@ -246,8 +320,9 @@ def select_characteristics(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
     missing = [c for c in GKX_CHARACTERISTICS if c not in df.columns]
     
     if missing:
-        print(f"  WARNING: {len(missing)} characteristics not found in dataset:")
-        print(f"    {missing[:10]}{'...' if len(missing) > 10 else ''}")
+        print(f"  WARNING: {len(missing)} characteristics not found after renaming:")
+        for m in missing:
+            print(f"    - {m}")
     
     print(f"  Using {len(available)} of {len(GKX_CHARACTERISTICS)} characteristics")
     
@@ -528,13 +603,62 @@ def prepare_tensors(
 
 
 if __name__ == "__main__":
-    """Quick test: run the pipeline on your data file."""
+    """
+    Run with:
+        python src/data_loader.py                         # build panel from auto-detected file
+        python src/data_loader.py path/to/raw.csv         # build from specific file
+        python src/data_loader.py --diagnose path/to/raw.csv  # just check column mapping
+    """
     import sys
 
-    filepath = sys.argv[1] if len(sys.argv) > 1 else None  # None -> auto-detect from RAW_DIR
+    if len(sys.argv) >= 3 and sys.argv[1] == "--diagnose":
+        # Diagnostic mode: show which CZ columns map to GKX chars and which don't
+        filepath = sys.argv[2]
+        header = pd.read_csv(filepath, nrows=0)
+        cz_cols_lower = set(c.lower().strip() for c in header.columns)
 
-    df, char_cols = build_panel(filepath, save_processed=True)
-    train, val, test = split_panel(df, train_end=197412, val_end=198612)
+        gkx_set = set(GKX_CHARACTERISTICS)
+        cz_to_gkx_lower = {k.lower(): v for k, v in CZ_RENAME.items()}
 
-    returns, chars, mask, dates = prepare_tensors(train, char_cols)
-    print(f"\n  Tensor shapes: returns {returns.shape}, chars {chars.shape}, mask {mask.shape}")
+        matched = {}     # gkx_name -> cz_source_name
+        unmatched = []   # gkx names with no mapping
+
+        for gkx in GKX_CHARACTERISTICS:
+            # Direct match (column already named as GKX)
+            if gkx in cz_cols_lower:
+                matched[gkx] = gkx
+                continue
+            # Check CZ_RENAME inverse: find a CZ key that maps to this GKX name
+            found = False
+            for cz_key, gkx_val in cz_to_gkx_lower.items():
+                if gkx_val == gkx and cz_key in cz_cols_lower:
+                    matched[gkx] = cz_key
+                    found = True
+                    break
+            if not found:
+                unmatched.append(gkx)
+
+        print(f"\n  CZ file has {len(header.columns)} columns")
+        print(f"  GKX characteristics matched: {len(matched)} / {len(GKX_CHARACTERISTICS)}")
+        print(f"\n  ── Matched ({len(matched)}) ──")
+        for gkx, cz in sorted(matched.items()):
+            tag = "" if gkx == cz else f"  (CZ: {cz})"
+            print(f"    {gkx}{tag}")
+        print(f"\n  ── Unmatched ({len(unmatched)}) ──")
+        for gkx in unmatched:
+            print(f"    {gkx}")
+
+        # Show CZ columns that weren't matched to anything (potential candidates)
+        used_cz = set(matched.values()) | set(cz_to_gkx_lower.keys())
+        unused_cz = sorted(cz_cols_lower - used_cz - {"permno", "yyyymm", "date", "ret"})
+        print(f"\n  ── Unused CZ columns ({len(unused_cz)}) ──")
+        for c in unused_cz[:30]:
+            print(f"    {c}")
+        if len(unused_cz) > 30:
+            print(f"    ... and {len(unused_cz) - 30} more")
+    else:
+        filepath = sys.argv[1] if len(sys.argv) > 1 else None
+        df, char_cols = build_panel(filepath, save_processed=True)
+        train, val, test = split_panel(df, train_end=197412, val_end=198612)
+        returns, chars, mask, dates = prepare_tensors(train, char_cols)
+        print(f"\n  Tensor shapes: returns {returns.shape}, chars {chars.shape}, mask {mask.shape}")

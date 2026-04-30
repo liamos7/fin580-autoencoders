@@ -1,0 +1,8 @@
+Started on adroit-h11n3 at Wed Apr 29 09:20:55 PM EDT 2026
+
+── Loading CRSP chars from checkpoint ──
+  4,687,255 rows, 37,384 stocks
+
+── Pulling Compustat annual fundamentals ──
+  Querying funda (this takes ~5 min)...
+Exited with code 1 at Wed Apr 29 09:20:57 PM EDT 2026

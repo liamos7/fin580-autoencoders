@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/scratch/network/lo8603/final_project/src/build_missing.py", line 216, in <module>
+    db = wrds_connect()
+  File "/scratch/network/lo8603/final_project/src/build_missing.py", line 31, in wrds_connect
+    return wrds.Connection(wrds_username=WRDS_USER, wrds_password=WRDS_PASS)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/wrds/sql.py", line 74, in __init__
+    self.connect()
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/wrds/sql.py", line 113, in connect
+    self._username, self._password = self.__get_user_credentials()
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/wrds/sql.py", line 211, in __get_user_credentials
+    username = input("Enter your WRDS username [{}]:".format(uname))
+EOFError: EOF when reading a line

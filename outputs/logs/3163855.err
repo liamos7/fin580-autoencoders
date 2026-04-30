@@ -1,0 +1,6 @@
+/scratch/network/lo8603/thesis/conda/envs/myenv/bin/python -c "
+import wrds
+db = wrds.Connection()
+print('Connected successfully')
+db.close()
+"

@@ -1,0 +1,139 @@
+Shell started on adroit-h11g3 at Thu Apr 30 12:15:27 AM EDT 2026
+Starting Python...
+
+============================================================
+  STEP 1: Data Loading and Preprocessing
+============================================================
+  Loading processed panel from data/processed/panel_processed.parquet...
+  4,221,335 stock-months, 91 characteristics
+  Train: 2,640,591 obs (197201-200512)
+  Val:   403,373 obs (200601-201012)
+  Test:  1,177,371 obs (201101-202312)
+
+  Converting to tensors...
+
+============================================================
+  STEP 2: Managed Portfolio Construction
+============================================================
+
+  Dataset sizes: train=2,640,591, val=403,373, test=1,177,371
+
+============================================================
+  STEP 3: Training CA2 with K=6
+============================================================
+
+  Seed 1/10
+    Epoch   0 | Train: 0.028271 | Val: 0.024397 (recon: 0.022553) | Patience: 0/10
+    Epoch  10 | Train: 0.023066 | Val: 0.022273 (recon: 0.020900) | Patience: 2/10
+    Epoch  20 | Train: 0.022450 | Val: 0.021193 (recon: 0.019824) | Patience: 3/10
+    Epoch  30 | Train: 0.021962 | Val: 0.020857 (recon: 0.019455) | Patience: 3/10
+    Epoch  40 | Train: 0.021699 | Val: 0.021421 (recon: 0.019959) | Patience: 8/10
+    Epoch  50 | Train: 0.021523 | Val: 0.021122 (recon: 0.019651) | Patience: 9/10
+    Epoch  51 | Train: 0.021438 | Val: 0.020707 (recon: 0.019223) | Patience: 10/10
+    Early stopping at epoch 51
+
+  Seed 2/10
+    Epoch   0 | Train: 0.028159 | Val: 0.024742 (recon: 0.022903) | Patience: 0/10
+    Epoch  10 | Train: 0.023064 | Val: 0.021479 (recon: 0.020169) | Patience: 3/10
+    Epoch  20 | Train: 0.022596 | Val: 0.021273 (recon: 0.019992) | Patience: 7/10
+    Epoch  30 | Train: 0.022152 | Val: 0.020815 (recon: 0.019519) | Patience: 0/10
+    Epoch  40 | Train: 0.021908 | Val: 0.020815 (recon: 0.019490) | Patience: 3/10
+    Epoch  47 | Train: 0.021774 | Val: 0.021816 (recon: 0.020430) | Patience: 10/10
+    Early stopping at epoch 47
+
+  Seed 3/10
+    Epoch   0 | Train: 0.028804 | Val: 0.024708 (recon: 0.022781) | Patience: 0/10
+    Epoch  10 | Train: 0.022904 | Val: 0.021034 (recon: 0.019697) | Patience: 0/10
+    Epoch  20 | Train: 0.022402 | Val: 0.021897 (recon: 0.020589) | Patience: 2/10
+    Epoch  30 | Train: 0.021891 | Val: 0.020721 (recon: 0.019330) | Patience: 0/10
+    Epoch  40 | Train: 0.021504 | Val: 0.021035 (recon: 0.019613) | Patience: 4/10
+    Epoch  46 | Train: 0.021430 | Val: 0.021052 (recon: 0.019601) | Patience: 10/10
+    Early stopping at epoch 46
+
+  Seed 4/10
+    Epoch   0 | Train: 0.028137 | Val: 0.024551 (recon: 0.022661) | Patience: 0/10
+    Epoch  10 | Train: 0.023085 | Val: 0.021566 (recon: 0.020298) | Patience: 0/10
+    Epoch  20 | Train: 0.022544 | Val: 0.021311 (recon: 0.019992) | Patience: 4/10
+    Epoch  26 | Train: 0.022245 | Val: 0.021154 (recon: 0.019844) | Patience: 10/10
+    Early stopping at epoch 26
+
+  Seed 5/10
+    Epoch   0 | Train: 0.028259 | Val: 0.024448 (recon: 0.022632) | Patience: 0/10
+    Epoch  10 | Train: 0.022975 | Val: 0.021168 (recon: 0.019879) | Patience: 1/10
+    Epoch  20 | Train: 0.022313 | Val: 0.021669 (recon: 0.020380) | Patience: 3/10
+    Epoch  30 | Train: 0.021967 | Val: 0.020915 (recon: 0.019572) | Patience: 5/10
+    Epoch  35 | Train: 0.021876 | Val: 0.020718 (recon: 0.019387) | Patience: 10/10
+    Early stopping at epoch 35
+
+  Seed 6/10
+    Epoch   0 | Train: 0.028585 | Val: 0.024471 (recon: 0.022668) | Patience: 0/10
+    Epoch  10 | Train: 0.023126 | Val: 0.021317 (recon: 0.020040) | Patience: 0/10
+    Epoch  20 | Train: 0.022795 | Val: 0.021561 (recon: 0.020271) | Patience: 5/10
+    Epoch  30 | Train: 0.022412 | Val: 0.021166 (recon: 0.019882) | Patience: 4/10
+    Epoch  40 | Train: 0.022104 | Val: 0.021335 (recon: 0.019978) | Patience: 3/10
+    Epoch  47 | Train: 0.021952 | Val: 0.020769 (recon: 0.019436) | Patience: 10/10
+    Early stopping at epoch 47
+
+  Seed 7/10
+    Epoch   0 | Train: 0.028455 | Val: 0.024848 (recon: 0.022918) | Patience: 0/10
+    Epoch  10 | Train: 0.023061 | Val: 0.021459 (recon: 0.020098) | Patience: 0/10
+    Epoch  20 | Train: 0.022583 | Val: 0.020954 (recon: 0.019556) | Patience: 0/10
+    Epoch  30 | Train: 0.022170 | Val: 0.020728 (recon: 0.019353) | Patience: 1/10
+    Epoch  40 | Train: 0.021783 | Val: 0.022107 (recon: 0.020686) | Patience: 5/10
+    Epoch  45 | Train: 0.021568 | Val: 0.020880 (recon: 0.019470) | Patience: 10/10
+    Early stopping at epoch 45
+
+  Seed 8/10
+    Epoch   0 | Train: 0.028357 | Val: 0.025409 (recon: 0.023377) | Patience: 0/10
+    Epoch  10 | Train: 0.023096 | Val: 0.021663 (recon: 0.020351) | Patience: 3/10
+    Epoch  20 | Train: 0.022633 | Val: 0.021185 (recon: 0.019872) | Patience: 4/10
+    Epoch  30 | Train: 0.022405 | Val: 0.021449 (recon: 0.020085) | Patience: 4/10
+    Epoch  36 | Train: 0.021995 | Val: 0.021159 (recon: 0.019728) | Patience: 10/10
+    Early stopping at epoch 36
+
+  Seed 9/10
+    Epoch   0 | Train: 0.028893 | Val: 0.024933 (recon: 0.022949) | Patience: 0/10
+    Epoch  10 | Train: 0.023051 | Val: 0.021657 (recon: 0.020316) | Patience: 4/10
+    Epoch  20 | Train: 0.022554 | Val: 0.021052 (recon: 0.019756) | Patience: 5/10
+    Epoch  25 | Train: 0.022401 | Val: 0.021340 (recon: 0.020014) | Patience: 10/10
+    Early stopping at epoch 25
+
+  Seed 10/10
+    Epoch   0 | Train: 0.028354 | Val: 0.024153 (recon: 0.022429) | Patience: 0/10
+    Epoch  10 | Train: 0.023067 | Val: 0.021664 (recon: 0.020379) | Patience: 0/10
+    Epoch  20 | Train: 0.022498 | Val: 0.021031 (recon: 0.019745) | Patience: 1/10
+    Epoch  30 | Train: 0.022043 | Val: 0.021142 (recon: 0.019807) | Patience: 1/10
+    Epoch  40 | Train: 0.021772 | Val: 0.021007 (recon: 0.019620) | Patience: 6/10
+    Epoch  44 | Train: 0.021649 | Val: 0.021198 (recon: 0.019793) | Patience: 10/10
+    Early stopping at epoch 44
+
+============================================================
+  STEP 4: Out-of-Sample Evaluation
+============================================================
+
+==================================================
+  CA2_K6 Evaluation Results
+==================================================
+  R²_total:        24.72%
+  R²_pred:         0.68%
+  Sharpe (EW):     10.01
+  Sharpe (tang.):  22.51
+
+============================================================
+  STEP 5: Extensions (Plans A & B)
+  Model: CA2 K=6
+============================================================
+
+  Plan A: Anomaly scoring on residuals...
+
+  Portfolio sort results:
+ quintile        label  mean_return_monthly  std_return  sharpe_annual  n_months
+        1  Low anomaly             0.006323    0.047241       0.463624       155
+        2           Q2             0.005370    0.047714       0.389853       155
+        3           Q3             0.006290    0.048302       0.451092       155
+        4           Q4             0.005561    0.048924       0.393721       155
+        5 High anomaly             0.004963    0.049439       0.347767       155
+        0   High - Low            -0.001359    0.006612      -0.712176       155
+
+  H-L significance (anomaly quintile sort)...
+Python exited with code 1

@@ -1,0 +1,84 @@
+Traceback (most recent call last):
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 712, in checkout
+    rec = pool._do_get()
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+    with util.safe_reraise():
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+    return self._create_connection()
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 389, in _create_connection
+    return _ConnectionRecord(self)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 674, in __init__
+    self.__connect()
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "wrds-pgdata.wharton.upenn.edu" to address: Name or service not known
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/scratch/network/lo8603/final_project/src/build_missing.py", line 244, in <module>
+    comp = db.raw_sql("""
+  File "/scratch/network/lo8603/final_project/src/build_missing.py", line 47, in raw_sql
+    with self.engine.connect() as conn:
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 3293, in connect
+    return self._connection_cls(self)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 145, in __init__
+    Connection._handle_dbapi_exception_noconnection(
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2448, in _handle_dbapi_exception_noconnection
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 3317, in raw_connection
+    return self.pool.connect()
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 712, in checkout
+    rec = pool._do_get()
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/impl.py", line 177, in _do_get
+    with util.safe_reraise():
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/impl.py", line 175, in _do_get
+    return self._create_connection()
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 389, in _create_connection
+    return _ConnectionRecord(self)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 674, in __init__
+    self.__connect()
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/pool/base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/engine/create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+  File "/scratch/network/lo8603/thesis/conda/envs/myenv/lib/python3.10/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) could not translate host name "wrds-pgdata.wharton.upenn.edu" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)

@@ -1,2 +1,57 @@
 Shell started on adroit-h11g2 at Wed Apr 29 07:17:52 PM EDT 2026
 Starting Python...
+
+============================================================
+  STEP 1: Data Loading and Preprocessing
+============================================================
+  Loading processed panel from data/processed/panel_processed.parquet...
+  4,221,335 stock-months, 56 characteristics
+  Train: 2,640,591 obs (197201-200512)
+  Val:   403,373 obs (200601-201012)
+  Test:  1,177,371 obs (201101-202312)
+
+  Converting to tensors...
+
+============================================================
+  STEP 2: Managed Portfolio Construction
+============================================================
+
+  Dataset sizes: train=2,640,591, val=403,373, test=1,177,371
+
+============================================================
+  STEP 3: Training CA2 with K=5
+============================================================
+
+  Seed 1/10
+    Epoch   0 | Train: 0.029245 | Val: 0.026046 (recon: 0.024416) | Patience: 0/10
+    Epoch  10 | Train: 0.027194 | Val: 0.024187 (recon: 0.023542) | Patience: 1/10
+    Epoch  20 | Train: 0.027136 | Val: 0.024009 (recon: 0.023500) | Patience: 1/10
+    Epoch  30 | Train: 0.027099 | Val: 0.024158 (recon: 0.023694) | Patience: 2/10
+    Epoch  40 | Train: 0.027077 | Val: 0.023864 (recon: 0.023434) | Patience: 8/10
+    Epoch  42 | Train: 0.027117 | Val: 0.023922 (recon: 0.023487) | Patience: 10/10
+    Early stopping at epoch 42
+
+  Seed 2/10
+    Epoch   0 | Train: 0.029599 | Val: 0.026132 (recon: 0.024454) | Patience: 0/10
+    Epoch  10 | Train: 0.027164 | Val: 0.024327 (recon: 0.023612) | Patience: 2/10
+    Epoch  20 | Train: 0.027045 | Val: 0.023919 (recon: 0.023343) | Patience: 1/10
+    Epoch  30 | Train: 0.026986 | Val: 0.023855 (recon: 0.023331) | Patience: 1/10
+    Epoch  40 | Train: 0.026954 | Val: 0.023768 (recon: 0.023274) | Patience: 3/10
+    Epoch  47 | Train: 0.026949 | Val: 0.023766 (recon: 0.023271) | Patience: 10/10
+    Early stopping at epoch 47
+
+  Seed 3/10
+    Epoch   0 | Train: 0.029334 | Val: 0.025985 (recon: 0.024256) | Patience: 0/10
+    Epoch  10 | Train: 0.027138 | Val: 0.024237 (recon: 0.023570) | Patience: 0/10
+    Epoch  20 | Train: 0.027082 | Val: 0.023976 (recon: 0.023452) | Patience: 0/10
+    Epoch  30 | Train: 0.027082 | Val: 0.023942 (recon: 0.023466) | Patience: 1/10
+    Epoch  40 | Train: 0.027073 | Val: 0.023970 (recon: 0.023523) | Patience: 5/10
+    Epoch  50 | Train: 0.027062 | Val: 0.023919 (recon: 0.023491) | Patience: 8/10
+    Epoch  52 | Train: 0.027049 | Val: 0.023932 (recon: 0.023500) | Patience: 10/10
+    Early stopping at epoch 52
+
+  Seed 4/10
+    Epoch   0 | Train: 0.029444 | Val: 0.026044 (recon: 0.024398) | Patience: 0/10
+    Epoch  10 | Train: 0.027092 | Val: 0.024038 (recon: 0.023333) | Patience: 0/10
+    Epoch  20 | Train: 0.026999 | Val: 0.024091 (recon: 0.023501) | Patience: 4/10
+    Epoch  30 | Train: 0.027005 | Val: 0.023726 (recon: 0.023204) | Patience: 0/10
