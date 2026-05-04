@@ -81,6 +81,7 @@ def portfolio_sort_analysis(
     dataset: AssetPricingDataset,
     residuals: list,
     actual_returns: list,
+    panel_df: pd.DataFrame = None,
     n_quantiles: int = config.N_QUANTILES,
     return_hl_series: bool = False,
 ):
@@ -93,10 +94,24 @@ def portfolio_sort_analysis(
     If high-anomaly stocks earn abnormal returns, the autoencoder's
     residuals contain economic signal — mispricing or regime change
     that the factor model misses.
+
+    When panel_df is provided, stocks are tracked by permno across months
+    to ensure correct matching. Without it, falls back to positional
+    matching (only valid when stock composition is stable).
     """
-    # We need to look at return at t+1 for stocks sorted at t
     T = len(residuals)
     
+    # Build permno lists per month for correct cross-month matching
+    if panel_df is not None:
+        dates = sorted(panel_df["date"].unique())
+        permnos_by_month = []
+        for date in dates:
+            permnos_by_month.append(
+                panel_df[panel_df["date"] == date]["permno"].values
+            )
+    else:
+        permnos_by_month = None
+
     quintile_returns = {q: [] for q in range(n_quantiles)}
     
     for t in range(T - 1):
@@ -105,15 +120,28 @@ def portfolio_sort_analysis(
         
         if len(eps_t) == 0 or len(r_next) == 0:
             continue
-        
-        # Use the minimum of stocks present in both months
-        n = min(len(eps_t), len(r_next))
-        if n < n_quantiles * 5:
-            continue
-        
-        # Anomaly score: absolute residual
-        anomaly = np.abs(eps_t[:n])
-        r = r_next[:n]
+
+        if permnos_by_month is not None:
+            # Match stocks present in BOTH months by permno
+            permnos_t = permnos_by_month[t][:len(eps_t)]
+            permnos_next = permnos_by_month[t + 1][:len(r_next)]
+
+            # Find common permnos and their indices in each month
+            common, idx_t, idx_next = np.intersect1d(
+                permnos_t, permnos_next, return_indices=True
+            )
+            if len(common) < n_quantiles * 5:
+                continue
+
+            anomaly = np.abs(eps_t[idx_t])
+            r = r_next[idx_next]
+        else:
+            # Fallback: positional matching (legacy behavior)
+            n = min(len(eps_t), len(r_next))
+            if n < n_quantiles * 5:
+                continue
+            anomaly = np.abs(eps_t[:n])
+            r = r_next[:n]
         
         # Sort into quintiles
         percentiles = np.percentile(anomaly, np.linspace(0, 100, n_quantiles + 1))
@@ -178,11 +206,17 @@ def predictive_regression(
     
     If E_{i,t} has a significant coefficient, reconstruction error
     adds predictive power beyond the model itself.
+
+    Standard errors are clustered by month (time) to account for
+    cross-sectional dependence in returns.
     """
-    # Collect panel for regression
-    y_list = []       # r_{i,t+1}
-    anomaly_list = [] # |ε_{i,t}|
-    rhat_list = []    # r̂_{i,t+1}
+    import statsmodels.api as sm
+
+    # Collect panel for regression, tracking month membership
+    y_list = []         # r_{i,t+1}
+    anomaly_list = []   # |ε_{i,t}|
+    rhat_list = []      # r̂_{i,t+1}
+    month_list = []     # month index for clustering
     
     T = len(residuals)
     for t in range(T - 1):
@@ -197,35 +231,37 @@ def predictive_regression(
         y_list.extend(r_next[:n].tolist())
         anomaly_list.extend(np.abs(eps_t[:n]).tolist())
         rhat_list.extend(rhat_next[:n].tolist())
+        month_list.extend([t + 1] * n)
     
     y = np.array(y_list)
     anomaly = np.array(anomaly_list)
     rhat = np.array(rhat_list)
+    months = np.array(month_list)
     
     # OLS: r_{t+1} = a + b1 * anomaly_t + b2 * rhat_{t+1} + error
     X = np.column_stack([np.ones(len(y)), anomaly, rhat])
     
     try:
-        beta_ols = np.linalg.lstsq(X, y, rcond=None)[0]
-        residual = y - X @ beta_ols
-        
-        # Standard errors (OLS, not Newey-West — for a class project this is fine)
-        sigma2 = (residual ** 2).mean()
-        var_beta = sigma2 * np.linalg.inv(X.T @ X)
-        se = np.sqrt(np.diag(var_beta))
-        t_stats = beta_ols / se
+        # Clustered standard errors by month
+        res = sm.OLS(y, X).fit(
+            cov_type="cluster",
+            cov_kwds={"groups": months},
+        )
         
         return {
-            "intercept": beta_ols[0],
-            "anomaly_coeff": beta_ols[1],
-            "rhat_coeff": beta_ols[2],
-            "anomaly_tstat": t_stats[1],
-            "rhat_tstat": t_stats[2],
-            "r_squared": 1 - (residual ** 2).sum() / ((y - y.mean()) ** 2).sum(),
+            "intercept": res.params[0],
+            "anomaly_coeff": res.params[1],
+            "rhat_coeff": res.params[2],
+            "anomaly_tstat_clustered": res.tvalues[1],
+            "rhat_tstat_clustered": res.tvalues[2],
+            "anomaly_pval": res.pvalues[1],
+            "rhat_pval": res.pvalues[2],
+            "r_squared": res.rsquared,
             "n_obs": len(y),
+            "n_clusters": len(np.unique(months)),
         }
-    except np.linalg.LinAlgError:
-        return {"error": "Regression failed"}
+    except Exception as e:
+        return {"error": str(e)}
 
 
 def transition_analysis(

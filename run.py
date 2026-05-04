@@ -47,6 +47,8 @@ def parse_args():
                         help="Tune L1 penalty on validation set")
     parser.add_argument("--run-extensions", action="store_true",
                         help="Run Plan A and Plan B extensions")
+    parser.add_argument("--run-backtest", action="store_true",
+                        help="Run predictive long-short backtest vs market")
     parser.add_argument("--compare-all", action="store_true",
                         help="Train and compare all architectures")
     parser.add_argument("--seeds", type=int, default=config.N_ENSEMBLE_SEEDS,
@@ -121,11 +123,16 @@ def main():
                     arch, P, MP, K, train_data, val_data,
                     n_seeds=args.seeds, verbose=False,
                 )
+
+                # Collect factor history from training set
+                from train_test_val.evaluate import collect_factor_history
+                fh = collect_factor_history(models, train_data)
                 
                 results = evaluate_model(
                     models, test_data,
                     model_name=f"{arch}_K{K}",
                     verbose=False,
+                    factor_history=fh,
                 )
                 results["architecture"] = arch
                 results["K"] = K
@@ -133,11 +140,50 @@ def main():
                 
                 print(f"    R²_total={results['r2_total']*100:.2f}%, "
                       f"R²_pred={results['r2_pred']*100:.2f}%, "
-                      f"SR={results['sharpe_ew']:.2f}")
+                      f"SR_pred={results['sharpe_pred']:.2f}, "
+                      f"SR_chars={results['sharpe_chars_only']:.2f}, "
+                      f"SR_contemp={results['sharpe_contemp']:.2f}")
         
         comparison = pd.DataFrame(all_results)
         comparison.to_csv(config.TABLE_DIR + "model_comparison.csv", index=False)
         print(f"\n  Comparison saved to {config.TABLE_DIR}model_comparison.csv")
+
+        # ── Robustness summary: median/IQR across all configurations ──
+        pred_srs = comparison["sharpe_pred"].values
+        chars_sr = comparison["sharpe_chars_only"].iloc[0]  # same for all configs
+        r2_totals = comparison["r2_total"].values * 100
+
+        print(f"\n  {'─'*50}")
+        print(f"  Robustness Summary ({len(pred_srs)} configurations)")
+        print(f"  {'─'*50}")
+        print(f"  Predictive Sharpe:")
+        print(f"    Median:  {np.median(pred_srs):.2f}")
+        print(f"    Mean:    {np.mean(pred_srs):.2f}")
+        print(f"    IQR:     [{np.percentile(pred_srs, 25):.2f}, "
+              f"{np.percentile(pred_srs, 75):.2f}]")
+        print(f"    Range:   [{np.min(pred_srs):.2f}, {np.max(pred_srs):.2f}]")
+        print(f"    Configs with SR > chars-only ({chars_sr:.2f}): "
+              f"{(pred_srs > chars_sr).sum()}/{len(pred_srs)}")
+        print(f"  Chars-only benchmark SR: {chars_sr:.2f}")
+        print(f"  R²_total:")
+        print(f"    Median:  {np.median(r2_totals):.2f}%")
+        print(f"    Best:    {np.max(r2_totals):.2f}%")
+
+        # Save robustness summary
+        robustness = pd.DataFrame([{
+            "n_configs": len(pred_srs),
+            "sr_pred_median": np.median(pred_srs),
+            "sr_pred_mean": np.mean(pred_srs),
+            "sr_pred_q25": np.percentile(pred_srs, 25),
+            "sr_pred_q75": np.percentile(pred_srs, 75),
+            "sr_pred_min": np.min(pred_srs),
+            "sr_pred_max": np.max(pred_srs),
+            "sr_chars_only": chars_sr,
+            "n_configs_above_chars": int((pred_srs > chars_sr).sum()),
+            "r2_total_median": np.median(r2_totals),
+            "r2_total_max": np.max(r2_totals),
+        }])
+        robustness.to_csv(config.TABLE_DIR + "robustness_summary.csv", index=False)
 
         # Pick best model by R²_total for extensions
         best = max(all_results, key=lambda r: r["r2_total"])
@@ -178,11 +224,18 @@ def main():
         print("  STEP 4: Out-of-Sample Evaluation")
         print("=" * 60)
 
+        # Collect factor history from training period for seeding λ̂
+        from train_test_val.evaluate import collect_factor_history
+        print("  Collecting training-period factor history...")
+        factor_history = collect_factor_history(models, train_data)
+        print(f"  Factor history: {len(factor_history)} months from training set")
+
         evaluate_model(
             models, test_data,
             model_name=f"{args.architecture}_K{args.K}",
             char_cols=char_cols,
             verbose=args.verbose,
+            factor_history=factor_history,
         )
 
     # ── Step 5: Extensions (Plans A & B) ──
@@ -209,7 +262,7 @@ def main():
         import math
 
         sort_results, anomaly_hl_series = portfolio_sort_analysis(
-            test_data, residuals, act_ret, return_hl_series=True
+            test_data, residuals, act_ret, panel_df=test_df, return_hl_series=True
         )
         print("\n  Portfolio sort results:")
         print(sort_results.to_string(index=False))
@@ -259,6 +312,29 @@ def main():
         print("\n  Ablation results:")
         print(ablation_results.to_string(index=False))
         ablation_results.to_csv(config.TABLE_DIR + "plan_b_ablation.csv", index=False)
+
+    # ── Step 6: Backtest ──
+    if args.run_backtest:
+        print("\n" + "=" * 60)
+        print("  STEP 6: Predictive Long-Short Backtest")
+        print(f"  Model: {args.architecture} K={args.K}")
+        print("=" * 60)
+
+        from train_test_val.backtest import run_full_backtest
+
+        # Ensure factor_history is available
+        if 'factor_history' not in dir():
+            from train_test_val.evaluate import collect_factor_history
+            print("  Collecting training-period factor history...")
+            factor_history = collect_factor_history(models, train_data)
+
+        backtest_results = run_full_backtest(
+            models, test_data, test_df,
+            output_dir=config.TABLE_DIR,
+            factor_history=factor_history,
+            lambda_window=60,
+            verbose=args.verbose,
+        )
 
     print("\n" + "=" * 60)
     print("  Done!")

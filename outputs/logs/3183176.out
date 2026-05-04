@@ -1,0 +1,315 @@
+Shell started on adroit-h11g2 at Sun May  3 09:03:53 PM EDT 2026
+Starting Python...
+
+============================================================
+  STEP 1: Data Loading and Preprocessing
+============================================================
+  Loading processed panel from data/processed/panel_processed.parquet...
+  4,221,335 stock-months, 91 characteristics
+  Train: 2,640,591 obs (197201-200512)
+  Val:   403,373 obs (200601-201012)
+  Test:  1,177,371 obs (201101-202312)
+
+  Converting to tensors...
+
+============================================================
+  STEP 2: Managed Portfolio Construction
+============================================================
+
+  Dataset sizes: train=2,640,591, val=403,373, test=1,177,371
+
+============================================================
+  STEP 3: Training CA2 with K=5
+============================================================
+
+  Seed 1/10
+    Epoch   0 | Train: 0.027835 | Val: 0.024779 (recon: 0.022967) | Patience: 0/10
+    Epoch  10 | Train: 0.023130 | Val: 0.023460 (recon: 0.022143) | Patience: 1/10
+    Epoch  20 | Train: 0.022650 | Val: 0.021522 (recon: 0.020204) | Patience: 5/10
+    Epoch  25 | Train: 0.022339 | Val: 0.021578 (recon: 0.020235) | Patience: 10/10
+    Early stopping at epoch 25
+
+  Seed 2/10
+    Epoch   0 | Train: 0.028108 | Val: 0.025157 (recon: 0.023186) | Patience: 0/10
+    Epoch  10 | Train: 0.023250 | Val: 0.021670 (recon: 0.020367) | Patience: 0/10
+    Epoch  20 | Train: 0.022595 | Val: 0.021232 (recon: 0.019907) | Patience: 0/10
+    Epoch  30 | Train: 0.022020 | Val: 0.021264 (recon: 0.019882) | Patience: 2/10
+    Epoch  40 | Train: 0.021597 | Val: 0.021451 (recon: 0.020029) | Patience: 3/10
+    Epoch  50 | Train: 0.021341 | Val: 0.021059 (recon: 0.019587) | Patience: 9/10
+    Epoch  51 | Train: 0.021304 | Val: 0.021016 (recon: 0.019549) | Patience: 10/10
+    Early stopping at epoch 51
+
+  Seed 3/10
+    Epoch   0 | Train: 0.029022 | Val: 0.024868 (recon: 0.023019) | Patience: 0/10
+    Epoch  10 | Train: 0.023070 | Val: 0.021270 (recon: 0.019969) | Patience: 2/10
+    Epoch  20 | Train: 0.022542 | Val: 0.021759 (recon: 0.020482) | Patience: 2/10
+    Epoch  30 | Train: 0.022066 | Val: 0.020904 (recon: 0.019577) | Patience: 8/10
+    Epoch  32 | Train: 0.022090 | Val: 0.020991 (recon: 0.019632) | Patience: 10/10
+    Early stopping at epoch 32
+
+  Seed 4/10
+    Epoch   0 | Train: 0.028968 | Val: 0.025253 (recon: 0.023327) | Patience: 0/10
+    Epoch  10 | Train: 0.023059 | Val: 0.021557 (recon: 0.020299) | Patience: 0/10
+    Epoch  20 | Train: 0.022558 | Val: 0.021906 (recon: 0.020605) | Patience: 4/10
+    Epoch  26 | Train: 0.022313 | Val: 0.021261 (recon: 0.019982) | Patience: 10/10
+    Early stopping at epoch 26
+
+  Seed 5/10
+    Epoch   0 | Train: 0.028353 | Val: 0.024822 (recon: 0.023042) | Patience: 0/10
+    Epoch  10 | Train: 0.023160 | Val: 0.021362 (recon: 0.020093) | Patience: 1/10
+    Epoch  20 | Train: 0.022515 | Val: 0.022039 (recon: 0.020756) | Patience: 3/10
+    Epoch  30 | Train: 0.022243 | Val: 0.021509 (recon: 0.020216) | Patience: 3/10
+    Epoch  37 | Train: 0.022020 | Val: 0.021870 (recon: 0.020578) | Patience: 10/10
+    Early stopping at epoch 37
+
+  Seed 6/10
+    Epoch   0 | Train: 0.028671 | Val: 0.024449 (recon: 0.022676) | Patience: 0/10
+    Epoch  10 | Train: 0.023131 | Val: 0.021430 (recon: 0.020156) | Patience: 0/10
+    Epoch  20 | Train: 0.022712 | Val: 0.021564 (recon: 0.020264) | Patience: 3/10
+    Epoch  30 | Train: 0.022170 | Val: 0.020962 (recon: 0.019650) | Patience: 4/10
+    Epoch  36 | Train: 0.022059 | Val: 0.020933 (recon: 0.019602) | Patience: 10/10
+    Early stopping at epoch 36
+
+  Seed 7/10
+    Epoch   0 | Train: 0.028241 | Val: 0.024742 (recon: 0.022951) | Patience: 0/10
+    Epoch  10 | Train: 0.023099 | Val: 0.021477 (recon: 0.020154) | Patience: 0/10
+    Epoch  20 | Train: 0.022613 | Val: 0.021142 (recon: 0.019801) | Patience: 4/10
+    Epoch  30 | Train: 0.022054 | Val: 0.020736 (recon: 0.019422) | Patience: 0/10
+    Epoch  40 | Train: 0.021710 | Val: 0.022445 (recon: 0.021114) | Patience: 9/10
+    Epoch  50 | Train: 0.021489 | Val: 0.020513 (recon: 0.019176) | Patience: 0/10
+    Epoch  60 | Train: 0.021417 | Val: 0.020478 (recon: 0.019131) | Patience: 1/10
+    Epoch  70 | Train: 0.021191 | Val: 0.020405 (recon: 0.019028) | Patience: 1/10
+    Epoch  79 | Train: 0.021094 | Val: 0.020205 (recon: 0.018843) | Patience: 10/10
+    Early stopping at epoch 79
+
+  Seed 8/10
+    Epoch   0 | Train: 0.028855 | Val: 0.026178 (recon: 0.024242) | Patience: 0/10
+    Epoch  10 | Train: 0.023044 | Val: 0.021565 (recon: 0.020252) | Patience: 3/10
+    Epoch  20 | Train: 0.022542 | Val: 0.021103 (recon: 0.019760) | Patience: 4/10
+    Epoch  30 | Train: 0.022088 | Val: 0.021328 (recon: 0.019925) | Patience: 4/10
+    Epoch  40 | Train: 0.021593 | Val: 0.020752 (recon: 0.019293) | Patience: 3/10
+    Epoch  50 | Train: 0.021448 | Val: 0.020682 (recon: 0.019203) | Patience: 5/10
+    Epoch  55 | Train: 0.021235 | Val: 0.021047 (recon: 0.019557) | Patience: 10/10
+    Early stopping at epoch 55
+
+  Seed 9/10
+    Epoch   0 | Train: 0.028467 | Val: 0.024636 (recon: 0.022709) | Patience: 0/10
+    Epoch  10 | Train: 0.023006 | Val: 0.021894 (recon: 0.020597) | Patience: 1/10
+    Epoch  20 | Train: 0.022478 | Val: 0.020996 (recon: 0.019713) | Patience: 0/10
+    Epoch  30 | Train: 0.022140 | Val: 0.020827 (recon: 0.019537) | Patience: 7/10
+    Epoch  33 | Train: 0.022029 | Val: 0.021169 (recon: 0.019820) | Patience: 10/10
+    Early stopping at epoch 33
+
+  Seed 10/10
+    Epoch   0 | Train: 0.028517 | Val: 0.024207 (recon: 0.022465) | Patience: 0/10
+    Epoch  10 | Train: 0.023124 | Val: 0.021773 (recon: 0.020503) | Patience: 1/10
+    Epoch  20 | Train: 0.022506 | Val: 0.020826 (recon: 0.019551) | Patience: 0/10
+    Epoch  30 | Train: 0.022113 | Val: 0.021069 (recon: 0.019750) | Patience: 1/10
+    Epoch  40 | Train: 0.021864 | Val: 0.020840 (recon: 0.019492) | Patience: 6/10
+    Epoch  44 | Train: 0.021750 | Val: 0.021139 (recon: 0.019777) | Patience: 10/10
+    Early stopping at epoch 44
+
+============================================================
+  STEP 4: Out-of-Sample Evaluation
+============================================================
+  Collecting training-period factor history...
+  Factor history: 408 months from training set
+
+==================================================
+  CA2_K5 Evaluation Results
+==================================================
+  R²_total:            25.05%
+  R²_pred:             0.65%
+  Sharpe (pred, EW):   2.13   ← tradable
+  Sharpe (chars only): 1.24   ← benchmark
+  Sharpe (contemp.):   10.20   ← factor fit
+  Sharpe (tang.):      8.89
+  Incremental SR:      +0.89   (AE vs chars-only)
+
+============================================================
+  STEP 5: Extensions (Plans A & B)
+  Model: CA2 K=5
+============================================================
+
+  Plan A: Anomaly scoring on residuals...
+
+  Portfolio sort results:
+ quintile        label  mean_return_monthly  std_return  sharpe_annual  n_months
+        1  Low anomaly             0.007171    0.038988       0.637136       155
+        2           Q2             0.006297    0.040323       0.540951       155
+        3           Q3             0.006260    0.044662       0.485524       155
+        4           Q4             0.005293    0.053019       0.345828       155
+        5 High anomaly             0.003611    0.068579       0.182415       155
+        0   High - Low            -0.003560    0.037537      -0.328499       155
+
+  H-L significance (anomaly quintile sort)...
+                test  mean_monthly      t_stat  p_value  significant_5pct
+ Newey-West (lags=3)      -0.00356   -1.074435 0.282628             False
+       i.i.d. t-test      -0.00356   -1.176804 0.241089             False
+Wilcoxon signed-rank      -0.00356 5026.000000 0.068695             False
+
+  H-L significance (predicted-return decile sort)...
+                test  mean_monthly      t_stat      p_value  significant_5pct
+ Newey-West (lags=3)      0.057071    6.434482 1.238955e-10              True
+       i.i.d. t-test      0.057071    7.666092 1.908339e-12              True
+Wilcoxon signed-rank      0.057071 2089.000000 2.629451e-12              True
+
+  Predictive regression:
+    intercept: -0.0032
+    anomaly_coeff: -0.0061
+    rhat_coeff: 1.0176
+    anomaly_tstat_clustered: -5.2280
+    rhat_tstat_clustered: 68.4738
+    anomaly_pval: 0.0000
+    rhat_pval: 0.0000
+    r_squared: 0.2505
+    n_obs: 1167208
+    n_clusters: 155
+
+  Transition analysis (low→high anomaly)...
+  Transitions found: 300, Controls: 22360
+                        group     n  mean_cum_ret      std  sharpe_annual
+Low→High anomaly (transition)   300      0.059734 0.306939       0.275220
+    Low→Low anomaly (control) 22360      0.025538 0.095870       0.376714
+Transition − Control (spread)   300      0.019146 0.325260       0.083245
+
+  Plan B: Energy regularization ablation...
+
+  Energy λ=0, Disentangle γ=0
+
+  Energy λ=0, Disentangle γ=0.0001
+
+  Energy λ=0, Disentangle γ=0.001
+
+  Energy λ=0, Disentangle γ=0.01
+
+  Energy λ=0, Disentangle γ=0.1
+
+  Energy λ=0.0001, Disentangle γ=0
+
+  Energy λ=0.0001, Disentangle γ=0.0001
+
+  Energy λ=0.0001, Disentangle γ=0.001
+
+  Energy λ=0.0001, Disentangle γ=0.01
+
+  Energy λ=0.0001, Disentangle γ=0.1
+
+  Energy λ=0.001, Disentangle γ=0
+
+  Energy λ=0.001, Disentangle γ=0.0001
+
+  Energy λ=0.001, Disentangle γ=0.001
+
+  Energy λ=0.001, Disentangle γ=0.01
+
+  Energy λ=0.001, Disentangle γ=0.1
+
+  Energy λ=0.01, Disentangle γ=0
+
+  Energy λ=0.01, Disentangle γ=0.0001
+
+  Energy λ=0.01, Disentangle γ=0.001
+
+  Energy λ=0.01, Disentangle γ=0.01
+
+  Energy λ=0.01, Disentangle γ=0.1
+
+  Energy λ=0.1, Disentangle γ=0
+
+  Energy λ=0.1, Disentangle γ=0.0001
+
+  Energy λ=0.1, Disentangle γ=0.001
+
+  Energy λ=0.1, Disentangle γ=0.01
+
+  Energy λ=0.1, Disentangle γ=0.1
+
+  Ablation results:
+ energy_lambda  disentangle_gamma  r2_total  r2_pred  final_train_loss  final_val_loss
+        0.0000             0.0000  0.227365 0.105534          0.021814        0.020649
+        0.0000             0.0001  0.236121 0.109464          0.021963        0.020840
+        0.0000             0.0010  0.236330 0.112019          0.021869        0.021964
+        0.0000             0.0100  0.240973 0.114116          0.021754        0.020683
+        0.0000             0.1000  0.237095 0.112036          0.021598        0.020635
+        0.0001             0.0000  0.219518 0.095186          0.022141        0.021226
+        0.0001             0.0001  0.238253 0.109753          0.021761        0.020630
+        0.0001             0.0010  0.225869 0.099867          0.022106        0.020989
+        0.0001             0.0100  0.228038 0.101765          0.021953        0.021642
+        0.0001             0.1000  0.238174 0.116200          0.021590        0.020652
+        0.0010             0.0000  0.221473 0.093065          0.021946        0.021496
+        0.0010             0.0001  0.210686 0.086751          0.021933        0.020822
+        0.0010             0.0010  0.228096 0.105040          0.021578        0.020485
+        0.0010             0.0100  0.251443 0.121191          0.021743        0.020938
+        0.0010             0.1000  0.229079 0.105365          0.021874        0.021153
+        0.0100             0.0000  0.232524 0.107034          0.021871        0.020712
+        0.0100             0.0001  0.232562 0.106329          0.021993        0.021641
+        0.0100             0.0010  0.230380 0.105238          0.021896        0.021707
+        0.0100             0.0100  0.228027 0.101484          0.022092        0.020930
+        0.0100             0.1000  0.210067 0.086507          0.022593        0.021272
+        0.1000             0.0000  0.222811 0.097961          0.022363        0.021231
+        0.1000             0.0001  0.232259 0.107090          0.021801        0.021324
+        0.1000             0.0010  0.241017 0.115941          0.021985        0.020701
+        0.1000             0.0100  0.231380 0.110228          0.022152        0.020928
+        0.1000             0.1000  0.252581 0.126773          0.021644        0.020699
+
+============================================================
+  STEP 6: Predictive Long-Short Backtest
+  Model: CA2 K=5
+============================================================
+
+  Running predictive long-short backtest...
+  λ̂ window: 60 months (rolling)
+  Training factor history: 408 months
+
+  Performance Summary:
+       strategy  ann_return  ann_vol   sharpe  sortino  max_drawdown   calmar  hit_rate  skewness  excess_kurtosis  n_months  mean_monthly  std_monthly
+Long-Short (AE)    0.679579 0.319386 2.127766 3.391988     -0.252890 2.687246  0.730769  0.978134         2.463379       156      0.056632     0.092199
+ Chars-Only L/S    0.177570 0.142950 1.242182 1.139894     -0.322671 0.550314  0.705128 -0.507109         1.573965       156      0.014797     0.041266
+      Long Only    0.716065 0.363078 1.972206 2.600931     -0.302295 2.368762  0.762821  0.808979         2.085013       156      0.059672     0.104812
+     Short Only    0.036486 0.075540 0.483008 0.356820     -0.196010 0.186145  0.685897 -2.329098        15.161085       156      0.003041     0.021807
+    Market (EW)    0.069201 0.167011 0.414351 0.400849     -0.346760 0.199565  0.583333 -0.248159         2.655028       156      0.005767     0.048212
+
+  Max drawdown: -25.3% at 201109.0
+
+  Factor Alphas:
+model  alpha_monthly  alpha_annual  alpha_tstat   alpha_pval  market_beta  r_squared
+ CAPM       0.047548      0.570578     7.760659 8.448892e-15      1.57513   0.678407
+
+  Most frequently longed stocks (by permno):
+ permno  n_months  mean_pred_ret  mean_actual_ret
+  12360       137       0.024384         0.032619
+  90978       124       0.023978         0.032237
+  92816       124       0.021299         0.026727
+  13253       119       0.022877         0.033811
+  92776       119       0.026347         0.018518
+  77699       118       0.025261         0.067031
+  13108       117       0.024904         0.015332
+  93284       116       0.022197         0.048312
+  82779       116       0.023866         0.067077
+  90533       116       0.022770         0.026206
+
+  Most frequently shorted stocks (by permno):
+ permno  n_months  mean_pred_ret  mean_actual_ret
+  90922       153       0.004056         0.000401
+  88930       150       0.004277         0.002506
+  91176       150       0.004136         0.002550
+  75415       149       0.003949         0.002825
+  77910       147       0.004164         0.001434
+  79049       146       0.004037         0.002321
+  75306       146       0.004129         0.000560
+  77693       145       0.004082         0.001759
+  75240       144       0.004262         0.001889
+  77469       144       0.004319         0.003324
+
+  Portfolio Turnover:
+ side  mean_turnover  median_turnover  std_turnover  min_turnover  max_turnover  avg_holding_months  mean_jaccard
+ Long       0.296639         0.288007      0.062163      0.231317           1.0            3.371104      0.545920
+Short       0.302408         0.293858      0.072590      0.194903           1.0            3.306786      0.540262
+
+  Backtest tables saved to /scratch/network/lo8603/final_project/outputs/tables/
+
+============================================================
+  Done!
+============================================================
+Python exited with code 0

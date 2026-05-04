@@ -1,0 +1,299 @@
+Shell started on adroit-h11g2 at Sat May  2 10:50:58 PM EDT 2026
+Starting Python...
+
+============================================================
+  STEP 1: Data Loading and Preprocessing
+============================================================
+  Loading processed panel from data/processed/panel_processed.parquet...
+  4,221,335 stock-months, 91 characteristics
+  Train: 2,640,591 obs (197201-200512)
+  Val:   403,373 obs (200601-201012)
+  Test:  1,177,371 obs (201101-202312)
+
+  Converting to tensors...
+
+============================================================
+  STEP 2: Managed Portfolio Construction
+============================================================
+
+  Dataset sizes: train=2,640,591, val=403,373, test=1,177,371
+
+============================================================
+  STEP 3: Training CA2 with K=5
+============================================================
+
+  Training IPCA K=1...
+    R²_total=3.19%, R²_pred=-0.03%, SR_pred=-5.16, SR_contemp=5.36
+
+  Training IPCA K=2...
+    R²_total=5.52%, R²_pred=0.25%, SR_pred=7.33, SR_contemp=7.12
+
+  Training IPCA K=3...
+    R²_total=5.93%, R²_pred=0.39%, SR_pred=2.45, SR_contemp=7.59
+
+  Training IPCA K=4...
+    R²_total=6.26%, R²_pred=1.28%, SR_pred=8.57, SR_contemp=7.61
+
+  Training IPCA K=5...
+    R²_total=6.32%, R²_pred=0.12%, SR_pred=0.94, SR_contemp=7.58
+
+  Training IPCA K=6...
+    R²_total=6.20%, R²_pred=0.20%, SR_pred=2.07, SR_contemp=7.48
+
+  Training CA0 K=1...
+    R²_total=11.76%, R²_pred=0.03%, SR_pred=1.47, SR_contemp=2.72
+
+  Training CA0 K=2...
+    R²_total=14.39%, R²_pred=0.32%, SR_pred=1.70, SR_contemp=6.47
+
+  Training CA0 K=3...
+    R²_total=15.02%, R²_pred=0.38%, SR_pred=3.42, SR_contemp=7.28
+
+  Training CA0 K=4...
+    R²_total=15.28%, R²_pred=0.96%, SR_pred=2.66, SR_contemp=7.39
+
+  Training CA0 K=5...
+    R²_total=15.23%, R²_pred=0.20%, SR_pred=4.63, SR_contemp=7.30
+
+  Training CA0 K=6...
+    R²_total=15.47%, R²_pred=0.34%, SR_pred=1.58, SR_contemp=7.42
+
+  Training CA1 K=1...
+    R²_total=11.95%, R²_pred=-0.00%, SR_pred=-1.07, SR_contemp=3.19
+
+  Training CA1 K=2...
+    R²_total=20.56%, R²_pred=-0.60%, SR_pred=2.34, SR_contemp=8.44
+
+  Training CA1 K=3...
+    R²_total=21.89%, R²_pred=1.81%, SR_pred=4.24, SR_contemp=9.37
+
+  Training CA1 K=4...
+    R²_total=22.39%, R²_pred=1.44%, SR_pred=2.98, SR_contemp=9.30
+
+  Training CA1 K=5...
+    R²_total=23.02%, R²_pred=0.85%, SR_pred=5.05, SR_contemp=9.44
+
+  Training CA1 K=6...
+    R²_total=21.86%, R²_pred=0.53%, SR_pred=5.14, SR_contemp=9.07
+
+  Training CA2 K=1...
+    R²_total=12.37%, R²_pred=0.10%, SR_pred=3.33, SR_contemp=3.15
+
+  Training CA2 K=2...
+    R²_total=22.18%, R²_pred=-0.21%, SR_pred=1.31, SR_contemp=9.30
+
+  Training CA2 K=3...
+    R²_total=24.26%, R²_pred=1.81%, SR_pred=1.51, SR_contemp=10.14
+
+  Training CA2 K=4...
+    R²_total=24.53%, R²_pred=-0.82%, SR_pred=4.05, SR_contemp=10.08
+
+  Training CA2 K=5...
+    R²_total=25.05%, R²_pred=0.67%, SR_pred=2.14, SR_contemp=10.20
+
+  Training CA2 K=6...
+    R²_total=25.13%, R²_pred=0.85%, SR_pred=4.84, SR_contemp=10.05
+
+  Training CA3 K=1...
+    R²_total=12.82%, R²_pred=0.01%, SR_pred=3.37, SR_contemp=3.18
+
+  Training CA3 K=2...
+    R²_total=22.18%, R²_pred=0.04%, SR_pred=-0.01, SR_contemp=9.18
+
+  Training CA3 K=3...
+    R²_total=24.06%, R²_pred=2.32%, SR_pred=9.72, SR_contemp=10.04
+
+  Training CA3 K=4...
+    R²_total=24.53%, R²_pred=1.31%, SR_pred=1.76, SR_contemp=10.02
+
+  Training CA3 K=5...
+    R²_total=24.80%, R²_pred=2.20%, SR_pred=10.33, SR_contemp=10.15
+
+  Training CA3 K=6...
+    R²_total=25.36%, R²_pred=0.62%, SR_pred=6.56, SR_contemp=10.21
+
+  Comparison saved to /scratch/network/lo8603/final_project/outputs/tables/model_comparison.csv
+
+  Best model: CA3 K=6 (R²_total=25.36%)
+
+  Retraining CA3 K=6 for extensions...
+
+============================================================
+  STEP 5: Extensions (Plans A & B)
+  Model: CA3 K=6
+============================================================
+
+  Plan A: Anomaly scoring on residuals...
+
+  Portfolio sort results:
+ quintile        label  mean_return_monthly  std_return  sharpe_annual  n_months
+        1  Low anomaly             0.006809    0.038816       0.607616       155
+        2           Q2             0.006328    0.040048       0.547343       155
+        3           Q3             0.006289    0.044660       0.487822       155
+        4           Q4             0.005644    0.053482       0.365540       155
+        5 High anomaly             0.003563    0.068620       0.179861       155
+        0   High - Low            -0.003246    0.037891      -0.296732       155
+
+  H-L significance (anomaly quintile sort)...
+                test  mean_monthly      t_stat  p_value  significant_5pct
+ Newey-West (lags=3)     -0.003246   -0.980437 0.326871             False
+       i.i.d. t-test     -0.003246   -1.063002 0.289445             False
+Wilcoxon signed-rank     -0.003246 5096.000000 0.090006             False
+
+  H-L significance (predicted-return decile sort)...
+                test  mean_monthly    t_stat      p_value  significant_5pct
+ Newey-West (lags=3)      0.084417 17.679011 6.085443e-70              True
+       i.i.d. t-test      0.084417 23.516154 1.137732e-52              True
+Wilcoxon signed-rank      0.084417 96.000000 3.270212e-26              True
+
+  Predictive regression:
+    intercept: -0.0035
+    anomaly_coeff: -0.0057
+    rhat_coeff: 1.0378
+    anomaly_tstat_clustered: -4.7978
+    rhat_tstat_clustered: 64.1091
+    anomaly_pval: 0.0000
+    rhat_pval: 0.0000
+    r_squared: 0.2537
+    n_obs: 1167208
+    n_clusters: 155
+
+  Transition analysis (low→high anomaly)...
+  Transitions found: 339, Controls: 22419
+                        group     n  mean_cum_ret      std  sharpe_annual
+Low→High anomaly (transition)   339      0.053202 0.254338       0.295825
+    Low→Low anomaly (control) 22419      0.027128 0.093686       0.409497
+Transition − Control (spread)   339      0.000824 0.275877       0.004225
+
+  Plan B: Energy regularization ablation...
+
+  Energy λ=0, Disentangle γ=0
+
+  Energy λ=0, Disentangle γ=0.0001
+
+  Energy λ=0, Disentangle γ=0.001
+
+  Energy λ=0, Disentangle γ=0.01
+
+  Energy λ=0, Disentangle γ=0.1
+
+  Energy λ=0.0001, Disentangle γ=0
+
+  Energy λ=0.0001, Disentangle γ=0.0001
+
+  Energy λ=0.0001, Disentangle γ=0.001
+
+  Energy λ=0.0001, Disentangle γ=0.01
+
+  Energy λ=0.0001, Disentangle γ=0.1
+
+  Energy λ=0.001, Disentangle γ=0
+
+  Energy λ=0.001, Disentangle γ=0.0001
+
+  Energy λ=0.001, Disentangle γ=0.001
+
+  Energy λ=0.001, Disentangle γ=0.01
+
+  Energy λ=0.001, Disentangle γ=0.1
+
+  Energy λ=0.01, Disentangle γ=0
+
+  Energy λ=0.01, Disentangle γ=0.0001
+
+  Energy λ=0.01, Disentangle γ=0.001
+
+  Energy λ=0.01, Disentangle γ=0.01
+
+  Energy λ=0.01, Disentangle γ=0.1
+
+  Energy λ=0.1, Disentangle γ=0
+
+  Energy λ=0.1, Disentangle γ=0.0001
+
+  Energy λ=0.1, Disentangle γ=0.001
+
+  Energy λ=0.1, Disentangle γ=0.01
+
+  Energy λ=0.1, Disentangle γ=0.1
+
+  Ablation results:
+ energy_lambda  disentangle_gamma  r2_total  r2_pred  final_train_loss  final_val_loss
+        0.0000             0.0000  0.232284 0.105976          0.021754        0.021343
+        0.0000             0.0001  0.222073 0.099635          0.022068        0.021189
+        0.0000             0.0010  0.243928 0.121956          0.021258        0.020881
+        0.0000             0.0100  0.234833 0.109736          0.021989        0.021354
+        0.0000             0.1000  0.226323 0.103787          0.021574        0.022535
+        0.0001             0.0000  0.252726 0.128699          0.020915        0.021339
+        0.0001             0.0001  0.229133 0.108235          0.021981        0.020804
+        0.0001             0.0010  0.241210 0.115452          0.021576        0.021033
+        0.0001             0.0100  0.235447 0.106547          0.021630        0.022316
+        0.0001             0.1000  0.236591 0.114616          0.021393        0.022083
+        0.0010             0.0000  0.238861 0.111386          0.021761        0.021437
+        0.0010             0.0001  0.224854 0.099467          0.022005        0.022062
+        0.0010             0.0010  0.223630 0.097603          0.022124        0.021203
+        0.0010             0.0100  0.226294 0.100804          0.021861        0.020985
+        0.0010             0.1000  0.223118 0.101218          0.022096        0.021706
+        0.0100             0.0000  0.235118 0.107489          0.021776        0.021945
+        0.0100             0.0001  0.211156 0.092258          0.022144        0.021142
+        0.0100             0.0010  0.241666 0.116251          0.021614        0.021400
+        0.0100             0.0100  0.213315 0.092545          0.022376        0.023387
+        0.0100             0.1000  0.230936 0.103607          0.021933        0.021019
+        0.1000             0.0000  0.229176 0.105200          0.021774        0.021278
+        0.1000             0.0001  0.238328 0.116078          0.021397        0.020722
+        0.1000             0.0010  0.216184 0.093810          0.022136        0.021548
+        0.1000             0.0100  0.228239 0.102133          0.022031        0.020957
+        0.1000             0.1000  0.240860 0.114474          0.021718        0.021469
+
+============================================================
+  STEP 6: Predictive Long-Short Backtest
+  Model: CA3 K=6
+============================================================
+
+  Running predictive long-short backtest...
+
+  Performance Summary:
+   strategy  ann_return  ann_vol    sharpe   sortino  max_drawdown    calmar  hit_rate  skewness  excess_kurtosis  n_months  mean_monthly  std_monthly
+ Long-Short    1.013003 0.154317  6.564422  3.118882     -0.093761 10.804123  0.993506  0.399194         2.441648       154      0.084417     0.044548
+  Long Only    0.753493 0.242370  3.108850  6.360172     -0.102251  7.369040  0.844156  1.447588         3.813506       154      0.062791     0.069966
+ Short Only   -0.259510 0.262910 -0.987066 -0.889753     -0.980791 -0.264592  0.376623 -0.055876         1.690649       154     -0.021626     0.075896
+Market (EW)    0.066105 0.167852  0.393828  0.382915     -0.346760  0.190636  0.577922 -0.233409         2.609106       154      0.005509     0.048455
+
+  Max drawdown: -9.4% at 201110.0
+
+  Factor Alphas:
+model  alpha_monthly  alpha_annual  alpha_tstat   alpha_pval  market_beta  r_squared
+ CAPM       0.085837      1.030038    18.677103 7.603560e-78    -0.257702   0.078571
+
+  Most frequently longed stocks (by permno):
+ permno  n_months  mean_pred_ret  mean_actual_ret
+  28629       121       0.002430         0.013501
+  77973       118       0.001534        -0.007373
+  20336       117       0.001400         0.021453
+  32062       116       0.000454         0.001759
+  46923       115       0.001624         0.031944
+  87825       114       0.005723         0.001701
+  90077       112       0.002736         0.045877
+  80114       112       0.002975         0.016378
+  80534       107       0.002627         0.025222
+  82162       106       0.002967         0.018681
+
+  Most frequently shorted stocks (by permno):
+ permno  n_months  mean_pred_ret  mean_actual_ret
+  92812       154      -0.012179         0.024998
+  92816       154      -0.013873         0.019340
+  92820       151      -0.012312         0.005725
+  93269       150      -0.011944         0.038368
+  92842       150      -0.012871        -0.004723
+  92961       150      -0.011655         0.025417
+  91318       147      -0.011380        -0.001107
+  93436       147      -0.012115         0.041001
+  92221       146      -0.011770         0.028136
+  88863       146      -0.012457         0.026258
+
+  Backtest tables saved to /scratch/network/lo8603/final_project/outputs/tables/
+
+============================================================
+  Done!
+============================================================
+Python exited with code 0

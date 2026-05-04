@@ -26,6 +26,32 @@ from train_test_val.train import AssetPricingDataset, ensemble_predict_month
 
 
 # ─────────────────────────────────────────────────────────────────
+# Factor history collection (for seeding the test-period λ̂)
+# ─────────────────────────────────────────────────────────────────
+
+def collect_factor_history(
+    models: list,
+    dataset: AssetPricingDataset,
+) -> List[np.ndarray]:
+    """
+    Extract factor estimates f̂_t for every month in a dataset.
+
+    Call this on the TRAINING dataset after training is complete.
+    The returned list can then be passed as factor_history to
+    evaluate_model, compute_long_short_sharpe, and the backtest
+    so that λ̂ is well-estimated from the very first test month.
+    """
+    factors = []
+    for t in range(dataset.T):
+        chars_t, returns_t, mp_t = dataset.get_month_data(t)
+        if len(returns_t) == 0:
+            continue
+        _, _, f_t = ensemble_predict_month(models, chars_t, mp_t)
+        factors.append(f_t.cpu().numpy())
+    return factors
+
+
+# ─────────────────────────────────────────────────────────────────
 # Core R² metrics
 # ─────────────────────────────────────────────────────────────────
 
@@ -129,6 +155,9 @@ def compute_long_short_sharpe(
     value_weight: bool = False,
     mvel_idx: Optional[int] = None,
     return_series: bool = False,
+    predictive: bool = True,
+    factor_history: Optional[List[np.ndarray]] = None,
+    lambda_window: int = 60,
 ) -> float:
     """
     Long-short decile spread portfolio Sharpe ratio (Table 3).
@@ -136,36 +165,81 @@ def compute_long_short_sharpe(
     Sort stocks into deciles by predicted return each month.
     Buy top decile (10), sell bottom decile (1). Compute annualized SR.
 
-    Previous bugs fixed:
-    - np.percentile with '>=' / '<=' created overlapping buckets when
-      predicted returns had ties, inflating the spread.
-    - Now uses pd.qcut for clean, non-overlapping decile assignment.
+    When predictive=True (default), uses a ROLLING window of past factors
+    λ̂_{t-1} instead of contemporaneous factors f̂_t to form predictions.
+    This gives a genuinely tradable Sharpe ratio: the sorting signal at t
+    uses only information available at t-1.
+
+    Parameters
+    ----------
+    factor_history : list of np.ndarray, optional
+        Factor estimates from the training period. Prepended to the test
+        factors so that λ̂ is well-estimated even at the start of the test
+        set. Without this, the first ~24 test months use a noisy λ̂.
+    lambda_window : int
+        Rolling window (in months) for estimating λ̂. Default 60 (5 years).
+        This prevents λ̂ from locking in and ensures the sorting signal
+        has genuine time variation. Set to 0 for expanding window.
     """
     monthly_returns = []
+
+    # If predictive, first collect all factor estimates
+    if predictive:
+        all_factors = []
+        for t in range(dataset.T):
+            chars_t, returns_t, mp_t = dataset.get_month_data(t)
+            if len(returns_t) == 0:
+                all_factors.append(None)
+                continue
+            _, _, f_t = ensemble_predict_month(models, chars_t, mp_t)
+            all_factors.append(f_t.cpu().numpy())
+
+        # Prepend training factor history
+        if factor_history is not None:
+            historical = [f for f in factor_history if f is not None]
+        else:
+            historical = []
 
     for t in range(dataset.T):
         chars_t, returns_t, mp_t = dataset.get_month_data(t)
         n_stocks = len(returns_t)
-        if n_stocks < n_deciles * 5:          # need ≥5 stocks per decile
+        if n_stocks < n_deciles * 5:
             continue
 
-        # Get predicted returns
-        r_hat, _, _ = ensemble_predict_month(models, chars_t, mp_t)
+        if predictive:
+            # All available factors up to t-1 (historical + test[:t])
+            past_factors = historical + [f for f in all_factors[:t] if f is not None]
+            if len(past_factors) < 2:
+                continue
+
+            # Rolling window: use only the last lambda_window observations
+            if lambda_window > 0 and len(past_factors) > lambda_window:
+                past_factors = past_factors[-lambda_window:]
+
+            lambda_prev = np.mean(past_factors, axis=0)
+            lambda_prev_t = torch.tensor(
+                lambda_prev, dtype=torch.float32, device=chars_t.device
+            )
+            # Get betas from the model, but use λ̂_{t-1} instead of f̂_t
+            _, beta, _ = ensemble_predict_month(models, chars_t, mp_t)
+            r_hat = (beta * lambda_prev_t.unsqueeze(0)).sum(dim=1)
+        else:
+            # Contemporaneous: r̂ = β' f̂_t (old behavior)
+            r_hat, _, _ = ensemble_predict_month(models, chars_t, mp_t)
+
         r_hat_np = r_hat.cpu().numpy()
         r_actual = returns_t.cpu().numpy()
 
-        # Assign each stock to a decile (1 = lowest predicted, 10 = highest)
-        # pd.qcut handles ties via 'first' duplicate strategy
+        # Assign each stock to a decile
         try:
             decile_labels = pd.qcut(
                 r_hat_np, q=n_deciles, labels=False, duplicates="drop"
             )
         except ValueError:
-            # Degenerate distribution — skip this month
             continue
 
-        top_mask = decile_labels == decile_labels.max()   # highest decile
-        bot_mask = decile_labels == decile_labels.min()   # lowest decile
+        top_mask = decile_labels == decile_labels.max()
+        bot_mask = decile_labels == decile_labels.min()
 
         if top_mask.sum() == 0 or bot_mask.sum() == 0:
             continue
@@ -173,7 +247,6 @@ def compute_long_short_sharpe(
         if value_weight and mvel_idx is not None:
             weights_t = chars_t[:, mvel_idx].cpu().numpy()
             weights_t = weights_t - weights_t.min() + 1e-6
-
             top_ret = np.average(r_actual[top_mask],
                                  weights=weights_t[top_mask])
             bot_ret = np.average(r_actual[bot_mask],
@@ -182,6 +255,73 @@ def compute_long_short_sharpe(
             top_ret = r_actual[top_mask].mean()
             bot_ret = r_actual[bot_mask].mean()
 
+        monthly_returns.append(top_ret - bot_ret)
+
+    monthly_returns = np.array(monthly_returns)
+
+    if len(monthly_returns) == 0:
+        return (0.0, monthly_returns) if return_series else 0.0
+
+    sr = monthly_returns.mean() / max(monthly_returns.std(ddof=1), 1e-10)
+    sr_annual = sr * np.sqrt(12)
+
+    return (sr_annual, monthly_returns) if return_series else sr_annual
+
+
+def compute_chars_only_sharpe(
+    dataset: AssetPricingDataset,
+    char_indices: Optional[List[int]] = None,
+    n_deciles: int = 10,
+    return_series: bool = False,
+) -> float:
+    """
+    Characteristics-only benchmark Sharpe ratio.
+
+    Sorts stocks by a simple composite of firm characteristics each month,
+    WITHOUT any autoencoder. This isolates the Sharpe ratio you get from
+    the cross-sectional characteristic sort alone — the "floor" that the
+    autoencoder's predictive SR should be compared against.
+
+    By default uses all characteristics (equal-weight average of ranks).
+    If char_indices is provided, uses only those characteristics
+    (e.g., [0, 3, 7] for mom1m, mom12m, bm).
+
+    The composite score is the cross-sectional mean of the (already
+    rank-normalized) characteristics for each stock. Stocks with high
+    composite scores are longed, low scores are shorted.
+    """
+    monthly_returns = []
+
+    for t in range(dataset.T):
+        chars_t, returns_t, mp_t = dataset.get_month_data(t)
+        n_stocks = len(returns_t)
+        if n_stocks < n_deciles * 5:
+            continue
+
+        z = chars_t.cpu().numpy()  # (N, P) — already rank-normalized to [-1,1]
+        r_actual = returns_t.cpu().numpy()
+
+        # Composite score: average of selected (or all) characteristics
+        if char_indices is not None:
+            composite = z[:, char_indices].mean(axis=1)
+        else:
+            composite = z.mean(axis=1)
+
+        try:
+            decile_labels = pd.qcut(
+                composite, q=n_deciles, labels=False, duplicates="drop"
+            )
+        except ValueError:
+            continue
+
+        top_mask = decile_labels == decile_labels.max()
+        bot_mask = decile_labels == decile_labels.min()
+
+        if top_mask.sum() == 0 or bot_mask.sum() == 0:
+            continue
+
+        top_ret = r_actual[top_mask].mean()
+        bot_ret = r_actual[bot_mask].mean()
         monthly_returns.append(top_ret - bot_ret)
 
     monthly_returns = np.array(monthly_returns)
@@ -270,17 +410,26 @@ def compute_pricing_errors(
     Out-of-sample pricing errors (alphas) for managed portfolios (Fig. 3).
     
     α_j = E[x_{j,t} - x̂_{j,t}]
+
+    The managed portfolio return for characteristic j at time t is:
+        x_{j,t} = (1/N_t) Σ_i z_{i,j,t-1} * r_{i,t}
+    
+    The model-implied managed portfolio return is:
+        x̂_{j,t} = (1/N_t) Σ_i z_{i,j,t-1} * r̂_{i,t}
+
+    The residual x_{j,t} - x̂_{j,t} = (1/N_t) Σ_i z_{i,j,t-1} * ε_{i,t}
+    aggregates stock-level pricing errors weighted by characteristics.
     
     Returns:
         alphas: (P+1,) average pricing errors
         t_stats: (P+1,) t-statistics
         mean_returns: (P+1,) average returns of managed portfolios
     """
-    # Collect month-by-month residuals at the managed portfolio level
     T = dataset.T
     P_plus_1 = mp_panel.shape[1]
     
     residuals = np.zeros((T, P_plus_1))
+    valid_months = np.zeros(T, dtype=bool)
     
     for t in range(T):
         chars_t, returns_t, mp_t = dataset.get_month_data(t)
@@ -288,17 +437,28 @@ def compute_pricing_errors(
             continue
         
         r_hat, beta, f = ensemble_predict_month(models, chars_t, mp_t)
-        f_np = f.cpu().numpy()
         
-        # TODO: To get managed portfolio-level predictions, need to aggregate
-        # stock-level predictions back to portfolio level. For now, use
-        # a simpler approach: the managed portfolio residual is x_t - x̂_t
-        # where x̂_t would require reconstructing from stock-level fits.
-        # Placeholder: compute at stock level and note this in report.
+        # Stock-level residuals
+        eps = (returns_t - r_hat).cpu().numpy()  # (N_t,)
+        z = chars_t.cpu().numpy()                # (N_t, P)
+        N_t = len(eps)
+        
+        # Managed portfolio residual for the market (equal-weighted):
+        residuals[t, 0] = eps.mean()
+        
+        # Managed portfolio residual for each characteristic j:
+        # x̂_{j,t} - x_{j,t} = (1/N_t) Σ_i z_{i,j} * ε_i
+        P = min(z.shape[1], P_plus_1 - 1)
+        residuals[t, 1:P+1] = (z[:, :P] * eps[:, None]).mean(axis=0)
+        
+        valid_months[t] = True
     
-    alphas = residuals.mean(axis=0)
-    t_stats = alphas / (residuals.std(axis=0) / np.sqrt(T) + 1e-10)
-    mean_returns = mp_panel.mean(axis=0)
+    n_valid = valid_months.sum()
+    residuals_valid = residuals[valid_months]
+    
+    alphas = residuals_valid.mean(axis=0)
+    t_stats = alphas / (residuals_valid.std(axis=0, ddof=1) / np.sqrt(n_valid) + 1e-10)
+    mean_returns = mp_panel.mean(axis=0) if mp_panel.ndim == 2 else mp_panel
     
     return alphas, t_stats, mean_returns
 
@@ -368,9 +528,18 @@ def evaluate_model(
     model_name: str = "",
     char_cols: Optional[List[str]] = None,
     verbose: bool = True,
+    factor_history: Optional[List[np.ndarray]] = None,
+    lambda_window: int = 60,
 ) -> Dict:
     """
     Run all evaluation metrics for a trained ensemble.
+
+    Parameters
+    ----------
+    factor_history : list of np.ndarray, optional
+        Factor estimates from the training period (from collect_factor_history).
+    lambda_window : int
+        Rolling window for λ̂ estimation (default 60 months = 5 years).
     
     Returns dict with all metrics.
     """
@@ -381,16 +550,26 @@ def evaluate_model(
     results["r2_total"] = r2_total
     
     # R²_pred
-    r2_pred = compute_r2_pred(models, test_data)
+    r2_pred = compute_r2_pred(models, test_data, factor_history=factor_history)
     results["r2_pred"] = r2_pred
     
-    # Sharpe ratios
-    sr_ew = compute_long_short_sharpe(
-        models, test_data,
-        returns_panel=None, chars_panel=None,
-        mask_panel=None, mp_panel=None,
+    # Predictive Sharpe ratio (tradable — uses rolling λ̂_{t-1})
+    sr_pred = compute_long_short_sharpe(
+        models, test_data, predictive=True,
+        factor_history=factor_history,
+        lambda_window=lambda_window,
     )
-    results["sharpe_ew"] = sr_ew
+    results["sharpe_pred"] = sr_pred
+    
+    # Contemporaneous Sharpe (factor model fit quality — NOT tradable)
+    sr_contemp = compute_long_short_sharpe(
+        models, test_data, predictive=False,
+    )
+    results["sharpe_contemp"] = sr_contemp
+    
+    # Characteristics-only benchmark Sharpe
+    sr_chars = compute_chars_only_sharpe(test_data)
+    results["sharpe_chars_only"] = sr_chars
     
     # Tangency Sharpe
     sr_tangency = compute_tangency_sharpe(models, test_data)
@@ -400,10 +579,15 @@ def evaluate_model(
         print(f"\n{'='*50}")
         print(f"  {model_name} Evaluation Results")
         print(f"{'='*50}")
-        print(f"  R²_total:        {r2_total*100:.2f}%")
-        print(f"  R²_pred:         {r2_pred*100:.2f}%")
-        print(f"  Sharpe (EW):     {sr_ew:.2f}")
-        print(f"  Sharpe (tang.):  {sr_tangency:.2f}")
+        print(f"  R²_total:            {r2_total*100:.2f}%")
+        print(f"  R²_pred:             {r2_pred*100:.2f}%")
+        print(f"  Sharpe (pred, EW):   {sr_pred:.2f}   ← tradable")
+        print(f"  Sharpe (chars only): {sr_chars:.2f}   ← benchmark")
+        print(f"  Sharpe (contemp.):   {sr_contemp:.2f}   ← factor fit")
+        print(f"  Sharpe (tang.):      {sr_tangency:.2f}")
+        if sr_chars != 0:
+            print(f"  Incremental SR:      {sr_pred - sr_chars:+.2f}   "
+                  f"(AE vs chars-only)")
     
     return results
 
@@ -484,7 +668,7 @@ def compare_models(results_list: List[Dict]) -> pd.DataFrame:
         if col in df.columns:
             df[col] = (df[col] * 100).round(2)
     
-    for col in ["sharpe_ew", "sharpe_tangency"]:
+    for col in ["sharpe_pred", "sharpe_chars_only", "sharpe_contemp", "sharpe_tangency"]:
         if col in df.columns:
             df[col] = df[col].round(2)
     

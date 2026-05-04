@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/scratch/network/lo8603/final_project/run.py", line 269, in <module>
+    main()
+  File "/scratch/network/lo8603/final_project/run.py", line 255, in main
+    ablation_results = run_energy_ablation(
+  File "/scratch/network/lo8603/final_project/train_test_val/extensions.py", line 600, in run_energy_ablation
+    print(f"\n  Energy λ={lam}, Disentangle γ={gam}")
+OSError: [Errno 116] Stale file handle
+/var/spool/slurmd/job3164122/slurm_script: line 23: echo: write error: Stale file handle
